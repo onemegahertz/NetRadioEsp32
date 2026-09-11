@@ -187,15 +187,15 @@ function OverviewTab() {
 
       {/* LCD Preview */}
       <div className="bg-gray-900 rounded-xl p-6 border border-gray-800">
-        <h3 className="text-lg font-bold text-emerald-400 mb-4">🖥️ Превью LCD 1602 (4 режима)</h3>
+        <h3 className="text-lg font-bold text-emerald-400 mb-4">🖥️ Превью LCD 1602 (время всегда видно!)</h3>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <div className="text-center">
             <div className="bg-blue-900 border-4 border-gray-700 rounded-lg p-2 font-mono">
               <div className="bg-blue-500 text-blue-900 p-1 rounded font-bold text-sm tracking-wider">
-                <div className="truncate">Record</div>
+                <div>Record  14:35:22</div>
               </div>
               <div className="bg-blue-500 text-blue-900 p-1 rounded font-bold text-sm tracking-wider mt-1">
-                <div>V:12/21</div>
+                <div>Vol:12/21</div>
               </div>
             </div>
             <p className="text-gray-400 text-xs mt-2">Режим 1: Громкость</p>
@@ -203,10 +203,10 @@ function OverviewTab() {
           <div className="text-center">
             <div className="bg-blue-900 border-4 border-gray-700 rounded-lg p-2 font-mono">
               <div className="bg-blue-500 text-blue-900 p-1 rounded font-bold text-sm tracking-wider">
-                <div className="truncate">Record</div>
+                <div>Record  14:35:22</div>
               </div>
               <div className="bg-blue-500 text-blue-900 p-1 rounded font-bold text-sm tracking-wider mt-1">
-                <div>T:-5.2C</div>
+                <div>Temp:-5.2C</div>
               </div>
             </div>
             <p className="text-gray-400 text-xs mt-2">Режим 2: Температура</p>
@@ -214,29 +214,30 @@ function OverviewTab() {
           <div className="text-center">
             <div className="bg-blue-900 border-4 border-gray-700 rounded-lg p-2 font-mono">
               <div className="bg-blue-500 text-blue-900 p-1 rounded font-bold text-sm tracking-wider">
-                <div className="truncate">Record</div>
+                <div>Record  14:35:22</div>
               </div>
               <div className="bg-blue-500 text-blue-900 p-1 rounded font-bold text-sm tracking-wider mt-1">
-                <div>T:14:35:22</div>
+                <div>Date:15.01.24</div>
               </div>
             </div>
-            <p className="text-gray-400 text-xs mt-2">Режим 3: Время</p>
+            <p className="text-gray-400 text-xs mt-2">Режим 3: Дата</p>
           </div>
           <div className="text-center">
             <div className="bg-blue-900 border-4 border-gray-700 rounded-lg p-2 font-mono">
               <div className="bg-blue-500 text-blue-900 p-1 rounded font-bold text-sm tracking-wider">
-                <div className="truncate">Record</div>
+                <div>Record  14:35:22</div>
               </div>
               <div className="bg-blue-500 text-blue-900 p-1 rounded font-bold text-sm tracking-wider mt-1">
-                <div>IP:192.168</div>
+                <div>IP:192.168.1</div>
               </div>
             </div>
             <p className="text-gray-400 text-xs mt-2">Режим 4: WiFi</p>
           </div>
         </div>
         <div className="mt-4 text-center text-gray-400 text-sm">
-          <p>Строка 1: Название станции (с прокруткой если длинное)</p>
-          <p>Строка 2: Переключается кнопкой MODE (Громкость → Температура → Время → WiFi)</p>
+          <p className="text-cyan-400 font-bold">⏰ Время (HH:MM:SS) всегда видно в правом верхнем углу!</p>
+          <p>Строка 1: Название станции + Время</p>
+          <p>Строка 2: Переключается кнопкой MODE (Громкость → Температура → Дата → WiFi)</p>
         </div>
       </div>
 
@@ -438,32 +439,39 @@ function WiringTab() {
       {/* Display Modes */}
       <div className="bg-gray-900 rounded-xl p-6 border border-gray-800">
         <h3 className="text-lg font-bold text-emerald-400 mb-4">🖥️ Режимы дисплея (кнопка MODE)</h3>
+        <div className="bg-cyan-900/20 border border-cyan-700/50 rounded-lg p-4 mb-4">
+          <h4 className="text-cyan-400 font-bold mb-2">⏰ Время всегда видно!</h4>
+          <p className="text-gray-300 text-sm">
+            Текущее время отображается в верхнем правом углу экрана во всех режимах. 
+            Синхронизация через NTP (часовой пояс Москва UTC+3).
+          </p>
+        </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="bg-blue-900/20 border border-blue-700/50 rounded-lg p-4">
             <h4 className="text-blue-400 font-bold mb-2">Режим 1: Громкость</h4>
             <div className="bg-blue-950 p-2 font-mono text-sm text-blue-300">
-              <div>Record          </div>
-              <div>V:12/21         </div>
+              <div>Record  14:35:22</div>
+              <div>Vol:12/21       </div>
             </div>
           </div>
           <div className="bg-green-900/20 border border-green-700/50 rounded-lg p-4">
             <h4 className="text-green-400 font-bold mb-2">Режим 2: Температура</h4>
             <div className="bg-green-950 p-2 font-mono text-sm text-green-300">
-              <div>Record          </div>
-              <div>T:-5.2C         </div>
+              <div>Record  14:35:22</div>
+              <div>Temp:-5.2C      </div>
             </div>
           </div>
           <div className="bg-yellow-900/20 border border-yellow-700/50 rounded-lg p-4">
-            <h4 className="text-yellow-400 font-bold mb-2">Режим 3: Время</h4>
+            <h4 className="text-yellow-400 font-bold mb-2">Режим 3: Дата</h4>
             <div className="bg-yellow-950 p-2 font-mono text-sm text-yellow-300">
-              <div>Record          </div>
-              <div>T:14:35:22      </div>
+              <div>Record  14:35:22</div>
+              <div>Date:15.01.2024 </div>
             </div>
           </div>
           <div className="bg-purple-900/20 border border-purple-700/50 rounded-lg p-4">
             <h4 className="text-purple-400 font-bold mb-2">Режим 4: WiFi</h4>
             <div className="bg-purple-950 p-2 font-mono text-sm text-purple-300">
-              <div>Record          </div>
+              <div>Record  14:35:22</div>
               <div>IP:192.168.1.100</div>
             </div>
           </div>

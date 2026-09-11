@@ -415,23 +415,35 @@ void updateWeather() {
 
 // ==================== DISPLAY ====================
 void updateDisplay() {
-  // Line 1: Station name (scrolling if needed)
+  // Line 1: Station name (scrolling if needed) + Time in corner
   lcd.setCursor(0, 0);
   String name = String(stations[currentStation].name);
   
-  if (name.length() > 16) {
-    // Scrolling text
+  // Reserve 8 characters for time display on the right
+  int nameLen = 8;  // Show first 8 chars of name
+  
+  if (name.length() > nameLen) {
+    // Scrolling text (shorter to make room for time)
     String scrollText = name + "   ";
     int len = scrollText.length();
-    for (int i = 0; i < 16; i++) {
+    for (int i = 0; i < nameLen; i++) {
       lcd.print(scrollText[(scrollPos + i) % len]);
     }
     scrollPos = (scrollPos + 1) % len;
   } else {
     lcd.print(name);
-    for (int i = name.length(); i < 16; i++) {
+    for (int i = name.length(); i < nameLen; i++) {
       lcd.print(' ');
     }
+  }
+  
+  // Time in top right corner (always visible)
+  if (strlen(currentTime) > 0) {
+    lcd.setCursor(8, 0);
+    lcd.print(currentTime);  // HH:MM:SS (8 chars)
+  } else {
+    lcd.setCursor(8, 0);
+    lcd.print("--:--:--");
   }
   
   // Line 2: Different content based on mode
@@ -440,31 +452,31 @@ void updateDisplay() {
   switch (displayMode) {
     case MODE_VOLUME:
       // Volume display
-      lcd.print("V:");
+      lcd.print("Vol:");
       if (currentVolume < 10) lcd.print(" ");
       lcd.print(currentVolume);
-      lcd.print("/21       ");
+      lcd.print("/21     ");
       break;
       
     case MODE_TEMPERATURE:
       // Temperature display
       if (strlen(weatherTemp) > 0) {
-        lcd.print("T:");
+        lcd.print("Temp:");
         lcd.print(weatherTemp);
-        lcd.print("        ");
+        lcd.print("     ");
       } else {
-        lcd.print("T:Loading...  ");
+        lcd.print("Temp:Loading.. ");
       }
       break;
       
     case MODE_TIME:
-      // Time display
-      if (strlen(currentTime) > 0) {
-        lcd.print("T:");
-        lcd.print(currentTime);
-        lcd.print("      ");
+      // Date display (time already shown on line 1)
+      if (strlen(currentDate) > 0) {
+        lcd.print("Date:");
+        lcd.print(currentDate);
+        lcd.print("    ");
       } else {
-        lcd.print("T:--:--:--      ");
+        lcd.print("Date:--.--.---- ");
       }
       break;
       
