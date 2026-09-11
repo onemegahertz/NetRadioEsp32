@@ -1,11 +1,11 @@
-export const arduinoSketch = `/*
+export const arduinoSketch = String.raw`/*
  * ============================================================
  *  NetRadio v.1 - Internet Radio on ESP32
  *  TFT LCD 2.4" ILI9341 SPI 320x240
  *  I2S Audio Output (MAX98357A / PCM5102)
  *  Web Interface for Station Management
  * ============================================================
- *  
+ *
  *  Libraries Required (install via Arduino Library Manager):
  *  - TFT_eSPI by Bodmer (v2.5.43+)
  *  - ESP32-audioI2S by schreibfaul1 (v3.0.7+)
@@ -13,7 +13,7 @@ export const arduinoSketch = `/*
  *  - Preferences (built-in ESP32)
  *  - WiFi (built-in ESP32)
  *  - WebServer (built-in ESP32)
- *  
+ *
  *  TFT_eSPI Configuration (User_Setup.h):
  *  #define ILI9341_DRIVER
  *  #define TFT_WIDTH  240
@@ -24,9 +24,9 @@ export const arduinoSketch = `/*
  *  #define TFT_DC      2
  *  #define TFT_RST     4
  *  #define SPI_FREQUENCY 40000000
- *  
+ *
  *  Hardware Connections:
- *  TFT ILI9341:  VCC->3.3V, GND->GND, CS->15, RESET->4, DC->2, 
+ *  TFT ILI9341:  VCC->3.3V, GND->GND, CS->15, RESET->4, DC->2,
  *                MOSI->23, SCK->18, LED->3.3V
  *  I2S DAC:      BCLK->26, LRC->25, DIN->22, VCC->5V, GND->GND
  *  Buttons:      BTN_NEXT->32, BTN_PREV->33, BTN_VOL_UP->34, BTN_VOL_DOWN->35
@@ -43,19 +43,16 @@ export const arduinoSketch = `/*
 #include "Audio.h"
 
 // ==================== PIN DEFINITIONS ====================
-// TFT Display Pins (SPI)
 #define TFT_CS    15
 #define TFT_DC     2
 #define TFT_RST    4
 #define TFT_MOSI  23
 #define TFT_SCLK  18
 
-// I2S Audio Pins
 #define I2S_BCLK  26
 #define I2S_LRC   25
 #define I2S_DOUT  22
 
-// Button Pins
 #define BTN_NEXT      32
 #define BTN_PREV      33
 #define BTN_VOL_UP    34
@@ -84,25 +81,39 @@ struct Station {
 Station stations[MAX_STATIONS];
 int stationCount = 0;
 int currentStation = 0;
-int currentVolume = 12;  // 0-21 range for audio library
+int currentVolume = 12;
 bool isPlaying = false;
 bool wifiConnected = false;
 String wifiSSID = "";
 String wifiIP = "";
 
-// Diagnostic flags
 bool diagTFT = false;
 bool diagI2S = false;
 bool diagWiFi = false;
 bool diagButtons = false;
 
-// Timing
 unsigned long lastButtonCheck = 0;
 unsigned long lastScreenUpdate = 0;
-unsigned long lastStationName = 0;
+
+// ==================== FORWARD DECLARATIONS ====================
+void playStation(int index);
+void nextStation();
+void prevStation();
+void volumeUp();
+void volumeDown();
+void updateDisplay();
+void loadStations();
+void saveStations();
+void loadDefaultStations();
+void deleteStation(int index);
+void setupWebServer();
+void showDiagnosticScreen();
+void runDiagnostics();
+void checkButtons();
+void sendJsonOK();
 
 // ==================== DIAGNOSTIC FUNCTIONS ====================
-void diagPrint(String component, bool status, String details = "") {
+void diagPrint(String component, bool status, String details) {
   Serial.print("[DIAG] ");
   Serial.print(component);
   Serial.print(": ");
@@ -119,14 +130,16 @@ void diagPrint(String component, bool status, String details = "") {
 }
 
 void runDiagnostics() {
-  Serial.println("\\n========================================");
+  Serial.println();
+  Serial.println("========================================");
   Serial.println("  NetRadio v.1 - System Diagnostics");
   Serial.println("========================================");
-  
+
   // 1. Check TFT Display
-  Serial.println("\\n[1/4] Checking TFT Display (ILI9341 SPI)...");
+  Serial.println();
+  Serial.println("[1/4] Checking TFT Display (ILI9341 SPI)...");
   tft.init();
-  tft.setRotation(0);  // Portrait 240x320
+  tft.setRotation(0);
   tft.fillScreen(TFT_BLACK);
   tft.setTextColor(TFT_CYAN, TFT_BLACK);
   tft.setTextSize(2);
@@ -136,37 +149,38 @@ void runDiagnostics() {
   tft.setTextColor(TFT_WHITE, TFT_BLACK);
   tft.setCursor(10, 40);
   tft.println("Running diagnostics...");
-  diagTFT = true;  // If we got here, TFT is working
+  diagTFT = true;
   diagPrint("TFT ILI9341", diagTFT, "240x320 SPI initialized");
-  
+
   // 2. Check I2S Audio
-  Serial.println("\\n[2/4] Checking I2S Audio Output...");
+  Serial.println();
+  Serial.println("[2/4] Checking I2S Audio Output...");
   audio.setPinout(I2S_BCLK, I2S_LRC, I2S_DOUT);
   audio.setVolume(currentVolume);
-  diagI2S = true;  // I2S configured successfully
+  diagI2S = true;
   diagPrint("I2S Audio", diagI2S, "BCLK=26 LRC=25 DOUT=22");
-  
+
   // 3. Check Buttons
-  Serial.println("\\n[3/4] Checking Buttons...");
+  Serial.println();
+  Serial.println("[3/4] Checking Buttons...");
   pinMode(BTN_NEXT, INPUT_PULLUP);
   pinMode(BTN_PREV, INPUT_PULLUP);
   pinMode(BTN_VOL_UP, INPUT_PULLUP);
   pinMode(BTN_VOL_DOWN, INPUT_PULLUP);
   diagButtons = true;
   diagPrint("Buttons", diagButtons, "NEXT=32 PREV=33 VOL+=34 VOL-=35");
-  
+
   // 4. Check WiFi
-  Serial.println("\\n[4/4] Checking WiFi Connection...");
+  Serial.println();
+  Serial.println("[4/4] Checking WiFi Connection...");
   tft.setCursor(10, 55);
   tft.println("Connecting to WiFi...");
-  
-  // Load WiFi credentials from preferences
+
   prefs.begin("netradio", false);
   String ssid = prefs.getString("ssid", "");
   String pass = prefs.getString("password", "");
-  
+
   if (ssid.length() == 0) {
-    // Default AP mode if no credentials saved
     ssid = "NetRadio_Setup";
     pass = "netradio123";
     WiFi.softAP(ssid.c_str(), pass.c_str());
@@ -181,7 +195,7 @@ void runDiagnostics() {
       Serial.print(".");
       attempts++;
     }
-    
+
     if (WiFi.status() == WL_CONNECTED) {
       wifiConnected = true;
       wifiSSID = ssid;
@@ -189,7 +203,6 @@ void runDiagnostics() {
       diagWiFi = true;
       diagPrint("WiFi Station", diagWiFi, "SSID: " + ssid + " IP: " + wifiIP);
     } else {
-      // Fallback to AP mode
       WiFi.mode(WIFI_AP);
       WiFi.softAP("NetRadio_Setup", "netradio123");
       wifiIP = WiFi.softAPIP().toString();
@@ -197,9 +210,10 @@ void runDiagnostics() {
       diagPrint("WiFi", diagWiFi, "Connection failed! AP Mode: NetRadio_Setup");
     }
   }
-  
+
   // Summary
-  Serial.println("\\n========================================");
+  Serial.println();
+  Serial.println("========================================");
   Serial.println("  Diagnostics Summary:");
   Serial.print("  TFT Display:    ");
   Serial.println(diagTFT ? "PASS" : "FAIL");
@@ -210,84 +224,79 @@ void runDiagnostics() {
   Serial.print("  WiFi:           ");
   Serial.println(diagWiFi ? "PASS" : "FAIL (AP Mode)");
   Serial.println("========================================");
-  
-  // Update TFT with diagnostic results
+
   showDiagnosticScreen();
   delay(3000);
 }
 
 void showDiagnosticScreen() {
   tft.fillScreen(TFT_BLACK);
-  
-  // Header
+
   tft.setTextColor(TFT_CYAN, TFT_BLACK);
   tft.setTextSize(2);
   tft.setCursor(30, 5);
   tft.println("NetRadio v.1");
-  
+
   tft.setTextSize(1);
   tft.setTextColor(TFT_YELLOW, TFT_BLACK);
   tft.setCursor(10, 35);
   tft.println("--- Diagnostics ---");
-  
-  // Results
+
   int y = 55;
   int lineH = 18;
-  
-  // TFT Status
+
   tft.setTextColor(diagTFT ? TFT_GREEN : TFT_RED, TFT_BLACK);
   tft.setCursor(10, y);
   tft.print(diagTFT ? "[OK] " : "[FAIL] ");
   tft.setTextColor(TFT_WHITE, TFT_BLACK);
   tft.print("TFT Display");
   y += lineH;
-  
-  // I2S Status
+
   tft.setTextColor(diagI2S ? TFT_GREEN : TFT_RED, TFT_BLACK);
   tft.setCursor(10, y);
   tft.print(diagI2S ? "[OK] " : "[FAIL] ");
   tft.setTextColor(TFT_WHITE, TFT_BLACK);
   tft.print("I2S Audio");
   y += lineH;
-  
-  // Buttons Status
+
   tft.setTextColor(diagButtons ? TFT_GREEN : TFT_RED, TFT_BLACK);
   tft.setCursor(10, y);
   tft.print(diagButtons ? "[OK] " : "[FAIL] ");
   tft.setTextColor(TFT_WHITE, TFT_BLACK);
   tft.print("Buttons");
   y += lineH;
-  
-  // WiFi Status
+
   tft.setTextColor(diagWiFi ? TFT_GREEN : TFT_RED, TFT_BLACK);
   tft.setCursor(10, y);
   tft.print(diagWiFi ? "[OK] " : "[!!] ");
   tft.setTextColor(TFT_WHITE, TFT_BLACK);
-  tft.print(diagWiFi ? "WiFi: " + wifiSSID : "AP: NetRadio_Setup");
+  if (wifiConnected) {
+    tft.print("WiFi: " + wifiSSID);
+  } else {
+    tft.print("AP: NetRadio_Setup");
+  }
   y += lineH;
-  
-  // IP Address
+
   tft.setTextColor(TFT_DARKGREY, TFT_BLACK);
   tft.setCursor(10, y + 10);
   tft.print("IP: " + wifiIP);
-  
-  // Web interface hint
+
   tft.setTextColor(TFT_GREEN, TFT_BLACK);
   tft.setCursor(10, y + 35);
-  tft.print("Web UI: http://" + wifiIP);
+  tft.print("Web: http://" + wifiIP);
 }
 
 // ==================== STATION MANAGEMENT ====================
 void loadStations() {
-  prefs.begin("stations", true);  // Read-only
+  prefs.begin("stations", true);
   stationCount = prefs.getInt("count", 0);
-  
+
   if (stationCount == 0) {
-    // Load default stations
+    prefs.end();
     loadDefaultStations();
     return;
   }
-  
+
   for (int i = 0; i < stationCount && i < MAX_STATIONS; i++) {
     String key = "s" + String(i);
     String data = prefs.getString(key.c_str(), "");
@@ -300,22 +309,22 @@ void loadStations() {
     }
   }
   prefs.end();
-  
-  Serial.printf("[INFO] Loaded %d stations from memory\\n", stationCount);
+
+  Serial.printf("[INFO] Loaded %d stations from memory\n", stationCount);
 }
 
 void saveStations() {
-  prefs.begin("stations", false);  // Read-write
+  prefs.begin("stations", false);
   prefs.putInt("count", stationCount);
-  
+
   for (int i = 0; i < stationCount; i++) {
     String key = "s" + String(i);
     String data = String(stations[i].name) + "|" + String(stations[i].url);
     prefs.putString(key.c_str(), data);
   }
   prefs.end();
-  
-  Serial.printf("[INFO] Saved %d stations to memory\\n", stationCount);
+
+  Serial.printf("[INFO] Saved %d stations to memory\n", stationCount);
 }
 
 void loadDefaultStations() {
@@ -347,34 +356,49 @@ void loadDefaultStations() {
     "https://radiorecord.hostingradio.ru/ambient_320",
     "https://radiorecord.hostingradio.ru/rushits_320"
   };
-  
+
   stationCount = 20;
   for (int i = 0; i < stationCount; i++) {
     strcpy(stations[i].name, defaultNames[i]);
     strcpy(stations[i].url, defaultUrls[i]);
   }
-  
+
   saveStations();
   Serial.println("[INFO] Default stations loaded and saved");
+}
+
+void deleteStation(int index) {
+  if (index < 0 || index >= stationCount) return;
+
+  for (int i = index; i < stationCount - 1; i++) {
+    stations[i] = stations[i + 1];
+  }
+  stationCount--;
+
+  if (currentStation >= stationCount && stationCount > 0) {
+    currentStation = 0;
+  }
+
+  saveStations();
+  Serial.printf("[WEB] Deleted station %d, now %d stations\n", index, stationCount);
 }
 
 // ==================== AUDIO CONTROL ====================
 void playStation(int index) {
   if (index < 0 || index >= stationCount) return;
-  
+
   currentStation = index;
   isPlaying = true;
-  
+
   audio.connecttohost(stations[currentStation].url);
-  
-  Serial.printf("[AUDIO] Playing: %s (%s)\\n", stations[currentStation].name, stations[currentStation].url);
-  
-  // Save current station
+
+  Serial.printf("[AUDIO] Playing: %s\n", stations[currentStation].name);
+
   prefs.begin("netradio", false);
   prefs.putInt("lastStation", currentStation);
   prefs.putInt("volume", currentVolume);
   prefs.end();
-  
+
   updateDisplay();
 }
 
@@ -395,7 +419,7 @@ void volumeUp() {
   if (currentVolume > 21) currentVolume = 21;
   audio.setVolume(currentVolume);
   updateDisplay();
-  Serial.printf("[AUDIO] Volume: %d/21\\n", currentVolume);
+  Serial.printf("[AUDIO] Volume: %d/21\n", currentVolume);
 }
 
 void volumeDown() {
@@ -403,23 +427,22 @@ void volumeDown() {
   if (currentVolume < 0) currentVolume = 0;
   audio.setVolume(currentVolume);
   updateDisplay();
-  Serial.printf("[AUDIO] Volume: %d/21\\n", currentVolume);
+  Serial.printf("[AUDIO] Volume: %d/21\n", currentVolume);
 }
 
 // ==================== DISPLAY FUNCTIONS ====================
 void updateDisplay() {
   if (!diagTFT) return;
-  
+
   tft.fillScreen(TFT_BLACK);
-  
+
   // Header bar
   tft.fillRect(0, 0, 240, 30, TFT_DARKGREY);
   tft.setTextColor(TFT_CYAN, TFT_DARKGREY);
   tft.setTextSize(1);
   tft.setCursor(5, 5);
   tft.print("NetRadio v.1");
-  
-  // WiFi info
+
   tft.setTextColor(TFT_GREEN, TFT_DARKGREY);
   tft.setCursor(5, 17);
   if (wifiConnected) {
@@ -428,70 +451,58 @@ void updateDisplay() {
     tft.setTextColor(TFT_YELLOW, TFT_DARKGREY);
     tft.print("AP: NetRadio_Setup");
   }
-  
-  // IP Address
+
   tft.setTextColor(TFT_DARKGREY, TFT_BLACK);
   tft.setCursor(5, 35);
   tft.print("IP: " + wifiIP);
-  
-  // Station info
+
   tft.setTextColor(TFT_WHITE, TFT_BLACK);
   tft.setTextSize(2);
   tft.setCursor(10, 65);
-  // Truncate long names
   String name = String(stations[currentStation].name);
   if (name.length() > 14) name = name.substring(0, 14);
   tft.print(name);
-  
-  // Station number
+
   tft.setTextSize(1);
   tft.setTextColor(TFT_DARKGREY, TFT_BLACK);
   tft.setCursor(10, 90);
   tft.printf("Station %d/%d", currentStation + 1, stationCount);
-  
+
   // Volume bar
   tft.setTextColor(TFT_YELLOW, TFT_BLACK);
   tft.setCursor(10, 115);
   tft.print("Volume:");
-  
+
   int barX = 10;
   int barY = 130;
   int barW = 220;
   int barH = 15;
-  
-  // Background
+
   tft.fillRect(barX, barY, barW, barH, TFT_DARKGREY);
-  // Fill
   int fillW = map(currentVolume, 0, 21, 0, barW);
   tft.fillRect(barX, barY, fillW, barH, TFT_GREEN);
-  // Border
   tft.drawRect(barX, barY, barW, barH, TFT_WHITE);
-  
-  // Volume text
+
   tft.setTextColor(TFT_WHITE, TFT_BLACK);
   tft.setCursor(10, 150);
   tft.printf("%d/21", currentVolume);
-  
-  // Controls hint
+
   tft.setTextColor(TFT_DARKGREY, TFT_BLACK);
   tft.setCursor(10, 180);
   tft.print("BTN: Next/Prev/Vol+/-");
-  
-  // Playing indicator
+
   if (isPlaying) {
     tft.setTextColor(TFT_GREEN, TFT_BLACK);
     tft.setCursor(180, 180);
     tft.print("PLAY");
   }
-  
-  // URL (truncated)
+
   tft.setTextColor(TFT_DARKGREY, TFT_BLACK);
   tft.setCursor(10, 200);
   String url = String(stations[currentStation].url);
   if (url.length() > 30) url = url.substring(0, 30) + "...";
   tft.print(url);
-  
-  // Web UI hint
+
   tft.setTextColor(TFT_CYAN, TFT_BLACK);
   tft.setCursor(10, 220);
   tft.print("Web: http://" + wifiIP);
@@ -501,25 +512,25 @@ void updateDisplay() {
 void checkButtons() {
   unsigned long now = millis();
   if (now - lastButtonCheck < DEBOUNCE_MS) return;
-  
+
   if (digitalRead(BTN_NEXT) == LOW) {
     lastButtonCheck = now;
     nextStation();
     Serial.println("[BTN] Next station");
   }
-  
+
   if (digitalRead(BTN_PREV) == LOW) {
     lastButtonCheck = now;
     prevStation();
     Serial.println("[BTN] Previous station");
   }
-  
+
   if (digitalRead(BTN_VOL_UP) == LOW) {
     lastButtonCheck = now;
     volumeUp();
     Serial.println("[BTN] Volume Up");
   }
-  
+
   if (digitalRead(BTN_VOL_DOWN) == LOW) {
     lastButtonCheck = now;
     volumeDown();
@@ -527,177 +538,159 @@ void checkButtons() {
   }
 }
 
-// ==================== WEB SERVER ====================
-const char WEB_INTERFACE_HTML[] = R"rawliteral(
-<!DOCTYPE html>
-<html lang="ru">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>NetRadio v.1 - Web Control</title>
-<style>
-* { margin:0; padding:0; box-sizing:border-box; }
-body { font-family: 'Segoe UI', Arial, sans-serif; background: #0a0a1a; color: #e0e0e0; min-height: 100vh; }
-.header { background: linear-gradient(135deg, #1a1a3e, #2d1b69); padding: 20px; text-align: center; border-bottom: 2px solid #6c3ecf; }
-.header h1 { color: #00e5ff; font-size: 24px; margin-bottom: 5px; }
-.header p { color: #888; font-size: 12px; }
-.container { max-width: 600px; margin: 0 auto; padding: 15px; }
-.info-panel { background: #1a1a2e; border-radius: 10px; padding: 15px; margin-bottom: 15px; border: 1px solid #333; }
-.info-row { display: flex; justify-content: space-between; padding: 5px 0; border-bottom: 1px solid #222; }
-.info-label { color: #888; }
-.info-value { color: #00e5ff; font-weight: bold; }
-.controls { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px; }
-.btn { padding: 12px; border: none; border-radius: 8px; font-size: 14px; cursor: pointer; transition: all 0.2s; font-weight: bold; }
-.btn-prev { background: #2196F3; color: white; }
-.btn-next { background: #4CAF50; color: white; }
-.btn-voldown { background: #FF9800; color: white; }
-.btn-volup { background: #F44336; color: white; }
-.btn:hover { transform: scale(1.05); opacity: 0.9; }
-.btn:active { transform: scale(0.95); }
-.station-list { background: #1a1a2e; border-radius: 10px; padding: 15px; border: 1px solid #333; }
-.station-list h3 { color: #00e5ff; margin-bottom: 10px; }
-.station-item { display: flex; align-items: center; padding: 8px; margin: 4px 0; background: #0d0d1a; border-radius: 6px; border: 1px solid #222; }
-.station-item.active { border-color: #00e5ff; background: #1a2a3e; }
-.station-num { width: 25px; color: #666; font-size: 12px; }
-.station-name { flex: 1; font-size: 13px; }
-.station-actions { display: flex; gap: 5px; }
-.station-actions button { padding: 4px 8px; border: none; border-radius: 4px; cursor: pointer; font-size: 11px; }
-.btn-play { background: #4CAF50; color: white; }
-.btn-edit { background: #2196F3; color: white; }
-.btn-del { background: #F44336; color: white; }
-.add-form { background: #1a1a2e; border-radius: 10px; padding: 15px; margin-top: 15px; border: 1px solid #333; }
-.add-form h3 { color: #00e5ff; margin-bottom: 10px; }
-.form-row { margin-bottom: 10px; }
-.form-row label { display: block; color: #888; font-size: 12px; margin-bottom: 3px; }
-.form-row input { width: 100%; padding: 8px; border: 1px solid #333; border-radius: 5px; background: #0d0d1a; color: #e0e0e0; font-size: 13px; }
-.btn-add { width: 100%; padding: 10px; background: linear-gradient(135deg, #6c3ecf, #00e5ff); color: white; border: none; border-radius: 8px; font-size: 14px; cursor: pointer; font-weight: bold; }
-.btn-add:hover { opacity: 0.9; }
-.volume-display { text-align: center; font-size: 18px; color: #00e5ff; margin: 10px 0; }
-.wifi-form { background: #1a1a2e; border-radius: 10px; padding: 15px; margin-top: 15px; border: 1px solid #333; }
-.wifi-form h3 { color: #00e5ff; margin-bottom: 10px; }
-.btn-save-wifi { width: 100%; padding: 10px; background: #4CAF50; color: white; border: none; border-radius: 8px; font-size: 14px; cursor: pointer; font-weight: bold; margin-top: 10px; }
-</style>
-</head>
-<body>
-<div class="header">
-<h1>&#128251; NetRadio v.1</h1>
-<p>ESP32 Internet Radio Control Panel</p>
-</div>
-<div class="container">
-<div class="info-panel">
-<div class="info-row"><span class="info-label">WiFi Network:</span><span class="info-value" id="wifiSSID">Loading...</span></div>
-<div class="info-row"><span class="info-label">IP Address:</span><span class="info-value" id="wifiIP">Loading...</span></div>
-<div class="info-row"><span class="info-label">Current Station:</span><span class="info-value" id="currentStation">Loading...</span></div>
-<div class="info-row"><span class="info-label">Status:</span><span class="info-value" id="status">Loading...</span></div>
-</div>
-<div class="volume-display">Volume: <span id="volume">0</span>/21</div>
-<div class="controls">
-<button class="btn btn-prev" onclick="sendCmd('prev')">&#9664; Prev</button>
-<button class="btn btn-next" onclick="sendCmd('next')">Next &#9654;</button>
-<button class="btn btn-voldown" onclick="sendCmd('voldown')">&#128264; Vol -</button>
-<button class="btn btn-volup" onclick="sendCmd('volup')">&#128266; Vol +</button>
-</div>
-<div class="station-list">
-<h3>&#128251; Stations (<span id="stationCount">0</span>/20)</h3>
-<div id="stationList"></div>
-</div>
-<div class="add-form">
-<h3 id="formTitle">+ Add Station</h3>
-<div class="form-row"><label>Station Name:</label><input type="text" id="stationName" placeholder="e.g. Record"></div>
-<div class="form-row"><label>Stream URL:</label><input type="text" id="stationURL" placeholder="https://..."></div>
-<input type="hidden" id="editIndex" value="-1">
-<button class="btn-add" onclick="addStation()">Save Station</button>
-</div>
-<div class="wifi-form">
-<h3>&#128246; WiFi Settings</h3>
-<div class="form-row"><label>SSID:</label><input type="text" id="wifiName" placeholder="Your WiFi name"></div>
-<div class="form-row"><label>Password:</label><input type="password" id="wifiPass" placeholder="Your WiFi password"></div>
-<button class="btn-save-wifi" onclick="saveWiFi()">Save & Reconnect</button>
-</div>
-</div>
-<script>
-function sendCmd(cmd) {
-  fetch('/api/' + cmd).then(r => r.json()).then(d => updateUI(d));
-}
-function loadStations() {
-  fetch('/api/stations').then(r => r.json()).then(data => {
-    document.getElementById('stationCount').textContent = data.stations.length;
-    let html = '';
-    data.stations.forEach((s, i) => {
-      let active = i === data.current ? 'active' : '';
-      html += '<div class="station-item ' + active + '">' +
-        '<span class="station-num">' + (i+1) + '</span>' +
-        '<span class="station-name">' + s.name + '</span>' +
-        '<div class="station-actions">' +
-        '<button class="btn-play" onclick="playStation(' + i + ')">&#9654;</button>' +
-        '<button class="btn-edit" onclick="editStation(' + i + ')">&#9998;</button>' +
-        '<button class="btn-del" onclick="deleteStation(' + i + ')">&#10005;</button>' +
-        '</div></div>';
-    });
-    document.getElementById('stationList').innerHTML = html;
-  });
-}
-function playStation(i) { sendCmd('play/' + i); setTimeout(loadStations, 500); }
-function editStation(i) {
-  fetch('/api/stations').then(r => r.json()).then(data => {
-    document.getElementById('stationName').value = data.stations[i].name;
-    document.getElementById('stationURL').value = data.stations[i].url;
-    document.getElementById('editIndex').value = i;
-    document.getElementById('formTitle').textContent = 'Edit Station #' + (i+1);
-  });
-}
-function deleteStation(i) {
-  if (confirm('Delete this station?')) {
-    fetch('/api/delete/' + i).then(r => r.json()).then(() => { loadStations(); });
+// ==================== WEB INTERFACE HTML (PROGMEM) ====================
+const char WEB_HTML_PART1[] PROGMEM =
+"<!DOCTYPE html><html><head><meta charset=UTF-8>"
+"<meta name=viewport content='width=device-width,initial-scale=1'>"
+"<title>NetRadio v.1</title><style>"
+"*{margin:0;padding:0;box-sizing:border-box}"
+"body{font-family:Arial,sans-serif;background:#0a0a1a;color:#e0e0e0}"
+".hd{background:linear-gradient(135deg,#1a1a3e,#2d1b69);padding:20px;text-align:center;border-bottom:2px solid #6c3ecf}"
+".hd h1{color:#00e5ff;font-size:22px}.hd p{color:#888;font-size:11px}"
+".ct{max-width:500px;margin:0 auto;padding:12px}"
+".ip{background:#1a1a2e;border-radius:8px;padding:12px;margin-bottom:12px;border:1px solid #333}"
+".ir{display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid #222}"
+".il{color:#888;font-size:13px}.iv{color:#00e5ff;font-weight:bold;font-size:13px}"
+".ct2{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}"
+".bt{padding:10px;border:none;border-radius:6px;font-size:13px;cursor:pointer;font-weight:bold;color:#fff}"
+".b1{background:#2196F3}.b2{background:#4CAF50}.b3{background:#FF9800}.b4{background:#F44336}"
+".bt:active{opacity:0.7}"
+".vd{text-align:center;font-size:16px;color:#00e5ff;margin:8px 0}"
+".sl{background:#1a1a2e;border-radius:8px;padding:12px;border:1px solid #333;margin-bottom:12px}"
+".sl h3{color:#00e5ff;margin-bottom:8px;font-size:14px}"
+".si{display:flex;align-items:center;padding:6px;margin:3px 0;background:#0d0d1a;border-radius:5px;border:1px solid #222}"
+".si.a{border-color:#00e5ff;background:#1a2a3e}"
+".sn{width:22px;color:#666;font-size:11px}.nm{flex:1;font-size:12px}"
+".sa{display:flex;gap:3px}"
+".sa button{padding:3px 6px;border:none;border-radius:3px;cursor:pointer;font-size:10px;color:#fff}"
+".sp{background:#4CAF50}.se{background:#2196F3}.sd{background:#F44336}"
+".af{background:#1a1a2e;border-radius:8px;padding:12px;border:1px solid #333;margin-bottom:12px}"
+".af h3{color:#00e5ff;margin-bottom:8px;font-size:14px}"
+".fr{margin-bottom:8px}.fr label{display:block;color:#888;font-size:11px;margin-bottom:2px}"
+".fr input{width:100%;padding:7px;border:1px solid #333;border-radius:4px;background:#0d0d1a;color:#e0e0e0;font-size:12px}"
+".ba{width:100%;padding:9px;background:linear-gradient(135deg,#6c3ecf,#00e5ff);color:#fff;border:none;border-radius:6px;font-size:13px;cursor:pointer;font-weight:bold}"
+".wf{background:#1a1a2e;border-radius:8px;padding:12px;border:1px solid #333}"
+".wf h3{color:#00e5ff;margin-bottom:8px;font-size:14px}"
+".bw{width:100%;padding:9px;background:#4CAF50;color:#fff;border:none;border-radius:6px;font-size:13px;cursor:pointer;font-weight:bold;margin-top:8px}"
+"</style></head><body>";
+
+const char WEB_HTML_PART2[] PROGMEM =
+"<div class=hd><h1>NetRadio v.1</h1>"
+"<p>ESP32 Internet Radio</p></div><div class=ct>"
+"<div class=ip>"
+"<div class=ir><span class=il>WiFi:</span><span class=iv id=ws>--</span></div>"
+"<div class=ir><span class=il>IP:</span><span class=iv id=wi>--</span></div>"
+"<div class=ir><span class=il>Station:</span><span class=iv id=cs>--</span></div>"
+"<div class=ir><span class=il>Status:</span><span class=iv id=st>--</span></div>"
+"</div>"
+"<div class=vd>Vol: <span id=vl>0</span>/21</div>"
+"<div class=ct2>"
+"<button class=bt b1 onclick=sc('prev')>< Prev</button>"
+"<button class=bt b2 onclick=sc('next')>Next ></button>"
+"<button class=bt b3 onclick=sc('voldown')>Vol-</button>"
+"<button class=bt b4 onclick=sc('volup')>Vol+</button>"
+"</div>"
+"<div class=sl><h3>Stations (<span id=sc2>0</span>/20)</h3>"
+"<div id=slist></div></div>"
+"<div class=af><h3 id=ft>+ Add Station</h3>"
+"<div class=fr><label>Name:</label><input id=sn2 placeholder='Station name'></div>"
+"<div class=fr><label>URL:</label><input id=su placeholder='https://...'></div>"
+"<input type=hidden id=ei value=-1>"
+"<button class=ba onclick=addSt()>Save</button></div>"
+"<div class=wf><h3>WiFi Settings</h3>"
+"<div class=fr><label>SSID:</label><input id=wn placeholder='WiFi name'></div>"
+"<div class=fr><label>Password:</label><input type=password id=wp placeholder='Password'></div>"
+"<button class=bw onclick=saveWifi()>Save WiFi</button></div>"
+"</div>";
+
+const char WEB_HTML_PART3[] PROGMEM =
+"<script>"
+"function sc(c){fetch('/api/'+c).then(function(r){return r.json()}).then(function(d){uui(d)})}"
+"function ldSt(){fetch('/api/stations').then(function(r){return r.json()}).then(function(d){"
+"document.getElementById('sc2').textContent=d.stations.length;"
+"var h='';for(var i=0;i<d.stations.length;i++){"
+"var s=d.stations[i];var ac=i===d.current?'a':'';"
+"h+='<div class=si '+ac+'><span class=sn>'+(i+1)+'</span><span class=nm>'+s.name+'</span>'"
+"+'<div class=sa><button class=sp onclick=plSt('+i+')>P</button>'"
+"+'<button class=se onclick=edSt('+i+')>E</button>'"
+"+'<button class=sd onclick=dlSt('+i+')>X</button></div></div>'}"
+"document.getElementById('slist').innerHTML=h})}"
+"function plSt(i){sc('play/'+i);setTimeout(ldSt,500)}"
+"function edSt(i){fetch('/api/stations').then(function(r){return r.json()}).then(function(d){"
+"document.getElementById('sn2').value=d.stations[i].name;"
+"document.getElementById('su').value=d.stations[i].url;"
+"document.getElementById('ei').value=i;"
+"document.getElementById('ft').textContent='Edit #'+(i+1)})}"
+"function dlSt(i){if(confirm('Delete?')){fetch('/api/delete/'+i).then(function(){ldSt()})}}"
+"function addSt(){var n=document.getElementById('sn2').value;var u=document.getElementById('su').value;"
+"var x=document.getElementById('ei').value;if(!n||!u){alert('Fill all!');return}"
+"fetch('/api/station',{method:'POST',headers:{'Content-Type':'application/json'},"
+"body:JSON.stringify({name:n,url:u,index:parseInt(x)})}).then(function(){ldSt();"
+"document.getElementById('sn2').value='';document.getElementById('su').value='';"
+"document.getElementById('ei').value=-1;document.getElementById('ft').textContent='+ Add Station'})}"
+"function saveWifi(){var s=document.getElementById('wn').value;var p=document.getElementById('wp').value;"
+"if(!s){alert('Enter SSID!');return}"
+"fetch('/api/wifi',{method:'POST',headers:{'Content-Type':'application/json'},"
+"body:JSON.stringify({ssid:s,password:p})}).then(function(){alert('Saved! Rebooting...')})}"
+"function uui(d){document.getElementById('ws').textContent=d.ssid||'N/A';"
+"document.getElementById('wi').textContent=d.ip||'N/A';"
+"document.getElementById('vl').textContent=d.volume||0;"
+"document.getElementById('cs').textContent=d.station||'N/A';"
+"var st=document.getElementById('st');"
+"st.textContent=d.playing?'PLAYING':'STOPPED';"
+"st.style.color=d.playing?'#4CAF50':'#F44336';ldSt()}"
+"fetch('/api/status').then(function(r){return r.json()}).then(function(d){uui(d)});"
+"setInterval(function(){fetch('/api/status').then(function(r){return r.json()}).then(function(d){uui(d)})},3000);"
+"</script></body></html>";
+
+// Helper to read PROGMEM string
+String readProgmemStr(const char* progmemStr) {
+  String result = "";
+  char c;
+  while ((c = pgm_read_byte(progmemStr++))) {
+    result += c;
   }
+  return result;
 }
-function addStation() {
-  let name = document.getElementById('stationName').value;
-  let url = document.getElementById('stationURL').value;
-  let idx = document.getElementById('editIndex').value;
-  if (!name || !url) { alert('Fill all fields!'); return; }
-  let body = JSON.stringify({name: name, url: url, index: parseInt(idx)});
-  fetch('/api/station', {method: 'POST', headers: {'Content-Type': 'application/json'}, body: body})
-    .then(r => r.json()).then(() => {
-      document.getElementById('stationName').value = '';
-      document.getElementById('stationURL').value = '';
-      document.getElementById('editIndex').value = '-1';
-      document.getElementById('formTitle').textContent = '+ Add Station';
-      loadStations();
-    });
+
+// ==================== JSON HELPERS ====================
+void sendJsonOK() {
+  JsonDocument doc;
+  doc["status"] = "ok";
+  String response;
+  serializeJson(doc, response);
+  server.send(200, "application/json", response);
 }
-function saveWiFi() {
-  let ssid = document.getElementById('wifiName').value;
-  let pass = document.getElementById('wifiPass').value;
-  if (!ssid) { alert('Enter SSID!'); return; }
-  fetch('/api/wifi', {method: 'POST', headers: {'Content-Type': 'application/json'},
-    body: JSON.stringify({ssid: ssid, password: pass})})
-    .then(r => r.json()).then(d => { alert('WiFi saved! Reconnecting...'); });
+
+void sendJsonError(String msg) {
+  JsonDocument doc;
+  doc["error"] = msg;
+  String response;
+  serializeJson(doc, response);
+  server.send(400, "application/json", response);
 }
-function updateUI(data) {
-  document.getElementById('wifiSSID').textContent = data.ssid || 'N/A';
-  document.getElementById('wifiIP').textContent = data.ip || 'N/A';
-  document.getElementById('volume').textContent = data.volume || 0;
-  document.getElementById('currentStation').textContent = data.station || 'N/A';
-  document.getElementById('status').textContent = data.playing ? 'PLAYING' : 'STOPPED';
-  document.getElementById('status').style.color = data.playing ? '#4CAF50' : '#F44336';
-  loadStations();
+
+// ==================== WEB SERVER ====================
+void handlePlay(int idx) {
+  playStation(idx);
+  sendJsonOK();
 }
-// Initial load
-fetch('/api/status').then(r => r.json()).then(d => updateUI(d));
-setInterval(() => { fetch('/api/status').then(r => r.json()).then(d => updateUI(d)); }, 3000);
-</script>
-</body>
-</html>
-)rawliteral";
+
+void handleDelete(int idx) {
+  deleteStation(idx);
+  sendJsonOK();
+}
 
 void setupWebServer() {
-  // Serve main page
+  // Serve main page from PROGMEM
   server.on("/", HTTP_GET, []() {
-    server.send(200, "text/html", WEB_INTERFACE_HTML);
+    String html = readProgmemStr(WEB_HTML_PART1);
+    html += readProgmemStr(WEB_HTML_PART2);
+    html += readProgmemStr(WEB_HTML_PART3);
+    server.send(200, "text/html", html);
   });
-  
-  // API: Get status
+
+  // API: Status
   server.on("/api/status", HTTP_GET, []() {
     JsonDocument doc;
     doc["ssid"] = wifiSSID;
@@ -706,13 +699,12 @@ void setupWebServer() {
     doc["current"] = currentStation;
     doc["station"] = String(stations[currentStation].name);
     doc["playing"] = isPlaying;
-    
     String response;
     serializeJson(doc, response);
     server.send(200, "application/json", response);
   });
-  
-  // API: Get stations list
+
+  // API: Stations list
   server.on("/api/stations", HTTP_GET, []() {
     JsonDocument doc;
     doc["current"] = currentStation;
@@ -722,216 +714,203 @@ void setupWebServer() {
       obj["name"] = stations[i].name;
       obj["url"] = stations[i].url;
     }
-    
     String response;
     serializeJson(doc, response);
     server.send(200, "application/json", response);
   });
-  
-  // API: Control commands
+
+  // API: Controls
   server.on("/api/next", HTTP_GET, []() {
     nextStation();
-    server.send(200, "application/json", "{\\\"status\\\":\\\"ok\\\"}");
+    sendJsonOK();
   });
-  
+
   server.on("/api/prev", HTTP_GET, []() {
     prevStation();
-    server.send(200, "application/json", "{\\\"status\\\":\\\"ok\\\"}");
+    sendJsonOK();
   });
-  
+
   server.on("/api/volup", HTTP_GET, []() {
     volumeUp();
-    server.send(200, "application/json", "{\\\"status\\\":\\\"ok\\\"}");
+    sendJsonOK();
   });
-  
+
   server.on("/api/voldown", HTTP_GET, []() {
     volumeDown();
-    server.send(200, "application/json", "{\\\"status\\\":\\\"ok\\\"}");
+    sendJsonOK();
   });
-  
-  // Play station by index - using a handler that parses the URI
-  server.on("/api/play/0", HTTP_GET, []() { playStation(0); server.send(200, "application/json", "{\\\"status\\\":\\\"ok\\\"}"); });
-  server.on("/api/play/1", HTTP_GET, []() { playStation(1); server.send(200, "application/json", "{\\\"status\\\":\\\"ok\\\"}"); });
-  server.on("/api/play/2", HTTP_GET, []() { playStation(2); server.send(200, "application/json", "{\\\"status\\\":\\\"ok\\\"}"); });
-  server.on("/api/play/3", HTTP_GET, []() { playStation(3); server.send(200, "application/json", "{\\\"status\\\":\\\"ok\\\"}"); });
-  server.on("/api/play/4", HTTP_GET, []() { playStation(4); server.send(200, "application/json", "{\\\"status\\\":\\\"ok\\\"}"); });
-  server.on("/api/play/5", HTTP_GET, []() { playStation(5); server.send(200, "application/json", "{\\\"status\\\":\\\"ok\\\"}"); });
-  server.on("/api/play/6", HTTP_GET, []() { playStation(6); server.send(200, "application/json", "{\\\"status\\\":\\\"ok\\\"}"); });
-  server.on("/api/play/7", HTTP_GET, []() { playStation(7); server.send(200, "application/json", "{\\\"status\\\":\\\"ok\\\"}"); });
-  server.on("/api/play/8", HTTP_GET, []() { playStation(8); server.send(200, "application/json", "{\\\"status\\\":\\\"ok\\\"}"); });
-  server.on("/api/play/9", HTTP_GET, []() { playStation(9); server.send(200, "application/json", "{\\\"status\\\":\\\"ok\\\"}"); });
-  server.on("/api/play/10", HTTP_GET, []() { playStation(10); server.send(200, "application/json", "{\\\"status\\\":\\\"ok\\\"}"); });
-  server.on("/api/play/11", HTTP_GET, []() { playStation(11); server.send(200, "application/json", "{\\\"status\\\":\\\"ok\\\"}"); });
-  server.on("/api/play/12", HTTP_GET, []() { playStation(12); server.send(200, "application/json", "{\\\"status\\\":\\\"ok\\\"}"); });
-  server.on("/api/play/13", HTTP_GET, []() { playStation(13); server.send(200, "application/json", "{\\\"status\\\":\\\"ok\\\"}"); });
-  server.on("/api/play/14", HTTP_GET, []() { playStation(14); server.send(200, "application/json", "{\\\"status\\\":\\\"ok\\\"}"); });
-  server.on("/api/play/15", HTTP_GET, []() { playStation(15); server.send(200, "application/json", "{\\\"status\\\":\\\"ok\\\"}"); });
-  server.on("/api/play/16", HTTP_GET, []() { playStation(16); server.send(200, "application/json", "{\\\"status\\\":\\\"ok\\\"}"); });
-  server.on("/api/play/17", HTTP_GET, []() { playStation(17); server.send(200, "application/json", "{\\\"status\\\":\\\"ok\\\"}"); });
-  server.on("/api/play/18", HTTP_GET, []() { playStation(18); server.send(200, "application/json", "{\\\"status\\\":\\\"ok\\\"}"); });
-  server.on("/api/play/19", HTTP_GET, []() { playStation(19); server.send(200, "application/json", "{\\\"status\\\":\\\"ok\\\"}"); });
-  
+
+  // API: Play stations 0-19
+  server.on("/api/play/0", HTTP_GET, []() { handlePlay(0); });
+  server.on("/api/play/1", HTTP_GET, []() { handlePlay(1); });
+  server.on("/api/play/2", HTTP_GET, []() { handlePlay(2); });
+  server.on("/api/play/3", HTTP_GET, []() { handlePlay(3); });
+  server.on("/api/play/4", HTTP_GET, []() { handlePlay(4); });
+  server.on("/api/play/5", HTTP_GET, []() { handlePlay(5); });
+  server.on("/api/play/6", HTTP_GET, []() { handlePlay(6); });
+  server.on("/api/play/7", HTTP_GET, []() { handlePlay(7); });
+  server.on("/api/play/8", HTTP_GET, []() { handlePlay(8); });
+  server.on("/api/play/9", HTTP_GET, []() { handlePlay(9); });
+  server.on("/api/play/10", HTTP_GET, []() { handlePlay(10); });
+  server.on("/api/play/11", HTTP_GET, []() { handlePlay(11); });
+  server.on("/api/play/12", HTTP_GET, []() { handlePlay(12); });
+  server.on("/api/play/13", HTTP_GET, []() { handlePlay(13); });
+  server.on("/api/play/14", HTTP_GET, []() { handlePlay(14); });
+  server.on("/api/play/15", HTTP_GET, []() { handlePlay(15); });
+  server.on("/api/play/16", HTTP_GET, []() { handlePlay(16); });
+  server.on("/api/play/17", HTTP_GET, []() { handlePlay(17); });
+  server.on("/api/play/18", HTTP_GET, []() { handlePlay(18); });
+  server.on("/api/play/19", HTTP_GET, []() { handlePlay(19); });
+
+  // API: Delete stations 0-19
+  server.on("/api/delete/0", HTTP_GET, []() { handleDelete(0); });
+  server.on("/api/delete/1", HTTP_GET, []() { handleDelete(1); });
+  server.on("/api/delete/2", HTTP_GET, []() { handleDelete(2); });
+  server.on("/api/delete/3", HTTP_GET, []() { handleDelete(3); });
+  server.on("/api/delete/4", HTTP_GET, []() { handleDelete(4); });
+  server.on("/api/delete/5", HTTP_GET, []() { handleDelete(5); });
+  server.on("/api/delete/6", HTTP_GET, []() { handleDelete(6); });
+  server.on("/api/delete/7", HTTP_GET, []() { handleDelete(7); });
+  server.on("/api/delete/8", HTTP_GET, []() { handleDelete(8); });
+  server.on("/api/delete/9", HTTP_GET, []() { handleDelete(9); });
+  server.on("/api/delete/10", HTTP_GET, []() { handleDelete(10); });
+  server.on("/api/delete/11", HTTP_GET, []() { handleDelete(11); });
+  server.on("/api/delete/12", HTTP_GET, []() { handleDelete(12); });
+  server.on("/api/delete/13", HTTP_GET, []() { handleDelete(13); });
+  server.on("/api/delete/14", HTTP_GET, []() { handleDelete(14); });
+  server.on("/api/delete/15", HTTP_GET, []() { handleDelete(15); });
+  server.on("/api/delete/16", HTTP_GET, []() { handleDelete(16); });
+  server.on("/api/delete/17", HTTP_GET, []() { handleDelete(17); });
+  server.on("/api/delete/18", HTTP_GET, []() { handleDelete(18); });
+  server.on("/api/delete/19", HTTP_GET, []() { handleDelete(19); });
+
   // API: Add/Edit station
   server.on("/api/station", HTTP_POST, []() {
-    if (server.hasArg("plain") == false) {
-      server.send(400, "application/json", "{\\"error\\":\\"No data\\"}");
+    if (!server.hasArg("plain")) {
+      sendJsonError("No data");
       return;
     }
-    
+
     String body = server.arg("plain");
     JsonDocument doc;
     DeserializationError error = deserializeJson(doc, body);
-    
+
     if (error) {
-      server.send(400, "application/json", "{\\"error\\":\\"JSON parse error\\"}");
+      sendJsonError("JSON parse error");
       return;
     }
-    
+
     const char* name = doc["name"];
     const char* url = doc["url"];
     int index = doc["index"];
-    
+
     if (index >= 0 && index < stationCount) {
       // Edit existing
       strncpy(stations[index].name, name, MAX_NAME_LEN - 1);
+      stations[index].name[MAX_NAME_LEN - 1] = '\0';
       strncpy(stations[index].url, url, MAX_URL_LEN - 1);
-      Serial.printf("[WEB] Edited station %d: %s\\n", index, name);
+      stations[index].url[MAX_URL_LEN - 1] = '\0';
+      Serial.printf("[WEB] Edited station %d: %s\n", index, name);
     } else {
       // Add new
       if (stationCount < MAX_STATIONS) {
         strncpy(stations[stationCount].name, name, MAX_NAME_LEN - 1);
+        stations[stationCount].name[MAX_NAME_LEN - 1] = '\0';
         strncpy(stations[stationCount].url, url, MAX_URL_LEN - 1);
+        stations[stationCount].url[MAX_URL_LEN - 1] = '\0';
         stationCount++;
-        Serial.printf("[WEB] Added station %d: %s\\n", stationCount - 1, name);
+        Serial.printf("[WEB] Added station %d: %s\n", stationCount - 1, name);
       } else {
-        server.send(400, "application/json", "{\\"error\\":\\"Max stations reached\\"}");
+        sendJsonError("Max stations reached (20)");
         return;
       }
     }
-    
+
     saveStations();
-    server.send(200, "application/json", "{\\"status\\":\\"ok\\"}");
+    sendJsonOK();
   });
-  
-  // API: Delete station
-  server.on("/api/delete/0", HTTP_GET, []() { deleteStation(0); server.send(200, "application/json", "{\\"status\\":\\"ok\\"}"); });
-  server.on("/api/delete/1", HTTP_GET, []() { deleteStation(1); server.send(200, "application/json", "{\\"status\\":\\"ok\\"}"); });
-  server.on("/api/delete/2", HTTP_GET, []() { deleteStation(2); server.send(200, "application/json", "{\\"status\\":\\"ok\\"}"); });
-  server.on("/api/delete/3", HTTP_GET, []() { deleteStation(3); server.send(200, "application/json", "{\\"status\\":\\"ok\\"}"); });
-  server.on("/api/delete/4", HTTP_GET, []() { deleteStation(4); server.send(200, "application/json", "{\\"status\\":\\"ok\\"}"); });
-  server.on("/api/delete/5", HTTP_GET, []() { deleteStation(5); server.send(200, "application/json", "{\\"status\\":\\"ok\\"}"); });
-  server.on("/api/delete/6", HTTP_GET, []() { deleteStation(6); server.send(200, "application/json", "{\\"status\\":\\"ok\\"}"); });
-  server.on("/api/delete/7", HTTP_GET, []() { deleteStation(7); server.send(200, "application/json", "{\\"status\\":\\"ok\\"}"); });
-  server.on("/api/delete/8", HTTP_GET, []() { deleteStation(8); server.send(200, "application/json", "{\\"status\\":\\"ok\\"}"); });
-  server.on("/api/delete/9", HTTP_GET, []() { deleteStation(9); server.send(200, "application/json", "{\\"status\\":\\"ok\\"}"); });
-  server.on("/api/delete/10", HTTP_GET, []() { deleteStation(10); server.send(200, "application/json", "{\\"status\\":\\"ok\\"}"); });
-  server.on("/api/delete/11", HTTP_GET, []() { deleteStation(11); server.send(200, "application/json", "{\\"status\\":\\"ok\\"}"); });
-  server.on("/api/delete/12", HTTP_GET, []() { deleteStation(12); server.send(200, "application/json", "{\\"status\\":\\"ok\\"}"); });
-  server.on("/api/delete/13", HTTP_GET, []() { deleteStation(13); server.send(200, "application/json", "{\\"status\\":\\"ok\\"}"); });
-  server.on("/api/delete/14", HTTP_GET, []() { deleteStation(14); server.send(200, "application/json", "{\\"status\\":\\"ok\\"}"); });
-  server.on("/api/delete/15", HTTP_GET, []() { deleteStation(15); server.send(200, "application/json", "{\\"status\\":\\"ok\\"}"); });
-  server.on("/api/delete/16", HTTP_GET, []() { deleteStation(16); server.send(200, "application/json", "{\\"status\\":\\"ok\\"}"); });
-  server.on("/api/delete/17", HTTP_GET, []() { deleteStation(17); server.send(200, "application/json", "{\\"status\\":\\"ok\\"}"); });
-  server.on("/api/delete/18", HTTP_GET, []() { deleteStation(18); server.send(200, "application/json", "{\\"status\\":\\"ok\\"}"); });
-  server.on("/api/delete/19", HTTP_GET, []() { deleteStation(19); server.send(200, "application/json", "{\\"status\\":\\"ok\\"}"); });
-  
+
   // API: Save WiFi
   server.on("/api/wifi", HTTP_POST, []() {
     String body = server.arg("plain");
     JsonDocument doc;
-    deserializeJson(doc, body);
-    
+    DeserializationError error = deserializeJson(doc, body);
+
+    if (error) {
+      sendJsonError("JSON parse error");
+      return;
+    }
+
     const char* ssid = doc["ssid"];
     const char* pass = doc["password"];
-    
+
     prefs.begin("netradio", false);
     prefs.putString("ssid", ssid);
     prefs.putString("password", pass);
     prefs.end();
-    
-    server.send(200, "application/json", "{\\"status\\":\\"ok\\", \\"message\\":\\"WiFi saved. Restarting...\\"}");
+
+    sendJsonOK();
     delay(1000);
     ESP.restart();
   });
-  
+
   server.begin();
   Serial.println("[WEB] Server started on port 80");
 }
 
-void deleteStation(int index) {
-  if (index < 0 || index >= stationCount) return;
-  
-  for (int i = index; i < stationCount - 1; i++) {
-    stations[i] = stations[i + 1];
-  }
-  stationCount--;
-  
-  if (currentStation >= stationCount) {
-    currentStation = 0;
-  }
-  
-  saveStations();
-  Serial.printf("[WEB] Deleted station %d, now %d stations\\n", index, stationCount);
-}
-
 // ==================== AUDIO CALLBACKS ====================
 void audio_info(const char *info) {
-  Serial.printf("[AUDIO] %s\\n", info);
+  Serial.printf("[AUDIO] %s\n", info);
 }
 
 void audio_id3data(const char *info) {
-  Serial.printf("[ID3] %s\\n", info);
+  Serial.printf("[ID3] %s\n", info);
 }
 
 void audio_eof_mp3(const char *info) {
-  Serial.printf("[AUDIO] EOF: %s\\n", info);
+  Serial.printf("[AUDIO] EOF: %s\n", info);
   nextStation();
 }
 
 void audio_showstation(const char *info) {
-  Serial.printf("[STATION] %s\\n", info);
+  Serial.printf("[STATION] %s\n", info);
 }
 
 void audio_showstreamtitle(const char *info) {
-  Serial.printf("[STREAM] %s\\n", info);
+  Serial.printf("[STREAM] %s\n", info);
 }
 
 // ==================== SETUP ====================
 void setup() {
   Serial.begin(115200);
   delay(1000);
-  
-  Serial.println("\\n*** NetRadio v.1 Starting ***");
+
+  Serial.println();
+  Serial.println("*** NetRadio v.1 Starting ***");
   Serial.println("ESP32 Internet Radio with TFT Display");
   Serial.println("=====================================");
-  
-  // Run diagnostics
+
   runDiagnostics();
-  
-  // Load stations from memory
   loadStations();
-  
-  // Restore last state
+
   prefs.begin("netradio", true);
   currentStation = prefs.getInt("lastStation", 0);
   currentVolume = prefs.getInt("volume", 12);
   prefs.end();
-  
+
   if (currentStation >= stationCount) currentStation = 0;
-  
-  // Setup web server
+
   setupWebServer();
-  
-  // Start playing
+
   if (wifiConnected && stationCount > 0) {
     playStation(currentStation);
   }
-  
-  // Show main screen
+
   updateDisplay();
-  
-  Serial.println("\\n*** NetRadio v.1 Ready ***");
-  Serial.printf("Web Interface: http://%s\\n", wifiIP.c_str());
+
+  Serial.println();
+  Serial.println("*** NetRadio v.1 Ready ***");
+  Serial.printf("Web Interface: http://%s\n", wifiIP.c_str());
 }
 
 // ==================== LOOP ====================
@@ -939,20 +918,18 @@ void loop() {
   server.handleClient();
   audio.loop();
   checkButtons();
-  
-  // Periodic screen update
+
   unsigned long now = millis();
   if (now - lastScreenUpdate > SCREEN_UPDATE_MS) {
     lastScreenUpdate = now;
-    // Could update dynamic info here (e.g., stream title)
   }
 }
 `;
 
-export const userSetupConfig = `
+export const userSetupConfig = String.raw`
 // ============================================
 // TFT_eSPI User_Setup.h Configuration
-// Add these lines to User_Setup.h in the 
+// Add these lines to User_Setup.h in the
 // TFT_eSPI library folder
 // ============================================
 
@@ -966,9 +943,9 @@ export const userSetupConfig = `
 #define TFT_CS    15
 #define TFT_DC     2
 #define TFT_RST    4
-#define TFT_MISO  -1  // Not used
+#define TFT_MISO  -1
 
-#define TFT_BL   -1   // LED backlight (connect to 3.3V)
+#define TFT_BL   -1
 
 #define LOAD_GLCD
 #define LOAD_FONT2
