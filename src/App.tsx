@@ -103,18 +103,33 @@ function OverviewTab() {
           названия станции и уровня громкости.
         </p>
         
-        {/* Optimization Notice */}
-        <div className="bg-green-900/30 border border-green-500/50 rounded-lg p-4 mt-4">
-          <h3 className="text-green-400 font-bold mb-2">✅ Код оптимизирован для ESP32 с 2MB Flash</h3>
-          <ul className="text-sm text-gray-300 space-y-1">
-            <li>• Сокращён HTML/CSS/JavaScript веб-интерфейса</li>
-            <li>• Убраны избыточные диагностические сообщения</li>
-            <li>• Оптимизированы обработчики API (циклы вместо дублирования)</li>
-            <li>• Уменьшены размеры буферов для станций</li>
-            <li>• Упрощена логика без потери функциональности</li>
-          </ul>
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      {/* Optimization Notice */}
+      <div className="bg-green-900/30 border border-green-500/50 rounded-lg p-4 mt-4">
+        <h3 className="text-green-400 font-bold mb-2">✅ RADICAL OPTIMIZATION - 2MB Flash Compatible</h3>
+        <ul className="text-sm text-gray-300 space-y-1">
+          <li>• <strong>Удалена библиотека ArduinoJson</strong> - парсинг JSON вручную (~50KB экономия)</li>
+          <li>• <strong>Удалена библиотека HTTPClient</strong> - прямой TCP запрос для погоды (~30KB экономия)</li>
+          <li>• <strong>Все String заменены на char[]</strong> - устранена фрагментация памяти</li>
+          <li>• <strong>snprintf вместо String конкатенации</strong> - компактное форматирование</li>
+          <li>• <strong>Ручной парсинг JSON</strong> вместо библиотеки ArduinoJson</li>
+          <li>• <strong>Оптимизирован User_Setup.h</strong> - отключены лишние шрифты</li>
+          <li>• <strong>Снижена SPI частота</strong> с 40MHz до 27MHz для стабильности</li>
+        </ul>
+      </div>
+
+      {/* Critical Instructions */}
+      <div className="bg-red-900/30 border border-red-500/50 rounded-lg p-4 mt-4">
+        <h3 className="text-red-400 font-bold mb-2">⚠️ КРИТИЧЕСКИ ВАЖНО - Прочитайте перед прошивкой!</h3>
+        <ol className="text-sm text-gray-300 space-y-2">
+          <li><strong className="text-red-400">1.</strong> Скачайте <code className="bg-gray-800 px-2 py-1 rounded">NetRadio_v1.ino</code> и <code className="bg-gray-800 px-2 py-1 rounded">User_Setup.h</code></li>
+          <li><strong className="text-red-400">2.</strong> Замените файл <code className="bg-gray-800 px-2 py-1 rounded">User_Setup.h</code> в библиотеке TFT_eSPI:
+            <br/><code className="text-xs text-gray-400">C:\Users\[USER]\Documents\Arduino\libraries\TFT_eSPI\User_Setup.h</code>
+          </li>
+          <li><strong className="text-red-400">3.</strong> В Arduino IDE: Tools → Partition Scheme → <strong>"Minimal SPIFFS (1.9MB APP)"</strong></li>
+          <li><strong className="text-red-400">4.</strong> Замените <code className="bg-gray-800 px-2 py-1 rounded">YOUR_KEY</code> в скетче на API ключ от openweathermap.org</li>
+          <li><strong className="text-red-400">5.</strong> Компилируйте и загружайте!</li>
+        </ol>
+      </div>        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <FeatureCard icon="📺" title="TFT Дисплей" desc={'2.4" ILI9341 SPI 320x240. Отображает WiFi, IP, станцию, громкость'} />
           <FeatureCard icon="🔊" title="I2S Аудио" desc="Высококачественный звук через MAX98357A или PCM5102 DAC" />
           <FeatureCard icon="🌐" title="Web Интерфейс" desc="Управление станциями через браузер на любом устройстве" />
@@ -184,18 +199,27 @@ function OverviewTab() {
 function SketchTab() {
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between flex-wrap gap-4">
         <div>
           <h2 className="text-2xl font-bold text-white">💻 Arduino Скетч</h2>
-          <p className="text-gray-400 mt-1">Оптимизированный код прошивки для ESP32 (2MB Flash)</p>
+          <p className="text-gray-400 mt-1">RADICAL OPTIMIZATION - 2MB Flash Compatible</p>
         </div>
-        <a
-          href="/NetRadio_v1.ino"
-          download="NetRadio_v1.ino"
-          className="px-6 py-3 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors flex items-center gap-2 font-bold"
-        >
-          ⬇️ Скачать NetRadio_v1.ino
-        </a>
+        <div className="flex gap-3">
+          <a
+            href="/NetRadio_v1.ino"
+            download="NetRadio_v1.ino"
+            className="px-6 py-3 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors flex items-center gap-2 font-bold"
+          >
+            ⬇️ Скачать NetRadio_v1.ino
+          </a>
+          <a
+            href="/User_Setup.h"
+            download="User_Setup.h"
+            className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors flex items-center gap-2 font-bold"
+          >
+            ⬇️ Скачать User_Setup.h
+          </a>
+        </div>
       </div>
 
       <div className="bg-green-900/20 border border-green-700/50 rounded-xl p-6">
@@ -233,12 +257,71 @@ function SketchTab() {
       <div className="bg-purple-900/20 border border-purple-700/50 rounded-xl p-4">
         <h4 className="text-purple-400 font-bold mb-2">🔧 Что было оптимизировано:</h4>
         <ul className="text-gray-300 text-sm space-y-1">
-          <li>• HTML/CSS/JS сокращены в 3 раза (убраны пробелы, комментарии)</li>
-          <li>• Обработчики API созданы циклом (40 строк → 4 строки)</li>
-          <li>• Убраны избыточные Serial.println в диагностике</li>
-          <li>• Уменьшены буферы: MAX_NAME_LEN (32→24), MAX_URL_LEN (128→96)</li>
-          <li>• Упрощена логика без потери функциональности</li>
+          <li>• <strong>Удалена ArduinoJson</strong> - парсинг JSON вручную (~50KB экономия)</li>
+          <li>• <strong>Удалена HTTPClient</strong> - прямой TCP запрос (~30KB экономия)</li>
+          <li>• <strong>Все String → char[]</strong> - устранена фрагментация памяти</li>
+          <li>• <strong>snprintf</strong> вместо String конкатенации</li>
+          <li>• <strong>Ручной парсинг JSON</strong> в веб-обработчиках</li>
+          <li>• <strong>Оптимизирован User_Setup.h</strong> - отключены лишние шрифты</li>
+          <li>• <strong>Снижена SPI частота</strong> 40MHz → 27MHz</li>
         </ul>
+      </div>
+
+      <div className="bg-orange-900/20 border border-orange-700/50 rounded-xl p-4">
+        <h4 className="text-orange-400 font-bold mb-2">🚀 ДОПОЛНИТЕЛЬНАЯ ОПТИМИЗАЦИЯ (если не хватает памяти):</h4>
+        <a
+          href="/MEMORY_FIX_GUIDE.md"
+          download="MEMORY_FIX_GUIDE.md"
+          className="inline-block mb-3 px-4 py-2 bg-orange-600 hover:bg-orange-700 text-white rounded-lg transition-colors text-sm font-bold"
+        >
+          📥 Скачать полное руководство по решению проблемы с памятью
+        </a>
+        <div className="text-gray-300 text-sm space-y-3">
+          <div>
+            <p className="font-bold mb-1">1. Оптимизация compiler flags:</p>
+            <p>Откройте файл:</p>
+            <code className="block bg-gray-800 p-2 rounded text-xs mt-1">
+              C:\Users\[USER]\AppData\Local\Arduino15\packages\esp32\hardware\esp32\[VERSION]\platform.txt
+            </code>
+            <p className="mt-2">Найдите строки:</p>
+            <code className="block bg-gray-800 p-2 rounded text-xs mt-1">
+              compiler.c.extra_flags=<br/>
+              compiler.cpp.extra_flags=
+            </code>
+            <p className="mt-2">Замените на:</p>
+            <code className="block bg-gray-800 p-2 rounded text-xs mt-1 text-green-400">
+              compiler.c.extra_flags=-ffunction-sections -fdata-sections -Wl,--gc-sections<br/>
+              compiler.cpp.extra_flags=-ffunction-sections -fdata-sections -Wl,--gc-sections
+            </code>
+            <p className="mt-2 text-yellow-400">⚠️ Это удалит неиспользуемый код (~50-100KB экономия)</p>
+          </div>
+
+          <div>
+            <p className="font-bold mb-1">2. Отключите лишние шрифты в User_Setup.h:</p>
+            <p>Закомментируйте все шрифты кроме LOAD_GLCD:</p>
+            <code className="block bg-gray-800 p-2 rounded text-xs mt-1">
+              #define LOAD_GLCD<br/>
+              //#define LOAD_FONT2<br/>
+              //#define LOAD_FONT4<br/>
+              //#define LOAD_FONT6<br/>
+              //#define LOAD_FONT7<br/>
+              //#define LOAD_FONT8<br/>
+              //#define LOAD_GFXFF
+            </code>
+            <p className="mt-2 text-yellow-400">⚠️ Каждый шрифт добавляет 10-20KB!</p>
+          </div>
+
+          <div>
+            <p className="font-bold mb-1">3. Используйте ESP32 с 4MB Flash:</p>
+            <p className="mt-1">Если оптимизации недостаточно, рассмотрите:</p>
+            <ul className="list-disc list-inside ml-4 mt-1 space-y-1">
+              <li>ESP32-WROOM-32 (4MB Flash) - стандартная плата</li>
+              <li>ESP32-S3 (4MB/8MB Flash)</li>
+              <li>ESP32-C3 (4MB Flash)</li>
+            </ul>
+            <p className="mt-2">Partition Scheme для 4MB: <strong>"Default 4MB with spiffs"</strong></p>
+          </div>
+        </div>
       </div>
     </div>
   );
