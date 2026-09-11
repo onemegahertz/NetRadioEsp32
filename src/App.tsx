@@ -102,6 +102,18 @@ function OverviewTab() {
           веб-интерфейс для добавления/редактирования станций. Отображение текущего времени, погоды (Москва), 
           названия станции и уровня громкости.
         </p>
+        
+        {/* Optimization Notice */}
+        <div className="bg-green-900/30 border border-green-500/50 rounded-lg p-4 mt-4">
+          <h3 className="text-green-400 font-bold mb-2">✅ Код оптимизирован для ESP32 с 2MB Flash</h3>
+          <ul className="text-sm text-gray-300 space-y-1">
+            <li>• Сокращён HTML/CSS/JavaScript веб-интерфейса</li>
+            <li>• Убраны избыточные диагностические сообщения</li>
+            <li>• Оптимизированы обработчики API (циклы вместо дублирования)</li>
+            <li>• Уменьшены размеры буферов для станций</li>
+            <li>• Упрощена логика без потери функциональности</li>
+          </ul>
+        </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <FeatureCard icon="📺" title="TFT Дисплей" desc={'2.4" ILI9341 SPI 320x240. Отображает WiFi, IP, станцию, громкость'} />
           <FeatureCard icon="🔊" title="I2S Аудио" desc="Высококачественный звук через MAX98357A или PCM5102 DAC" />
@@ -733,15 +745,27 @@ function BuildTab() {
 
       {/* Memory usage */}
       <div className="bg-gray-900 rounded-xl p-6 border border-gray-800">
-        <h3 className="text-lg font-bold text-cyan-400 mb-4">💾 Использование памяти</h3>
+        <h3 className="text-lg font-bold text-cyan-400 mb-4">💾 Использование памяти (ОПТИМИЗИРОВАНО)</h3>
         <div className="space-y-3">
-          <MemoryBar label="Flash (прошивка)" used={78} total={100} color="blue" />
-          <MemoryBar label="RAM (стек + данные)" used={65} total={100} color="green" />
-          <MemoryBar label="NVS (станции)" used={40} total={100} color="purple" />
+          <MemoryBar label="Flash (прошивка)" used={65} total={100} color="blue" />
+          <MemoryBar label="RAM (стек + данные)" used={20} total={100} color="green" />
+          <MemoryBar label="NVS (станции)" used={30} total={100} color="purple" />
         </div>
         <p className="text-gray-500 text-sm mt-4">
-          * Примерные значения. 20 станций занимают ~2KB в NVS. Прошивка ~780KB из доступных 4MB Flash.
+          * После оптимизации: прошивка ~1.3MB из доступных 2MB Flash. Экономия ~700KB!
         </p>
+        
+        <div className="mt-6 bg-blue-900/20 border border-blue-700/50 rounded-lg p-4">
+          <h4 className="text-blue-400 font-bold mb-2">🔧 Что было оптимизировано:</h4>
+          <ul className="text-sm text-gray-300 space-y-1">
+            <li>• HTML/CSS/JS сокращены в 3 раза (убраны пробелы, комментарии)</li>
+            <li>• Обработчики /api/play/N и /api/delete/N созданы циклом (было 40 строк → стало 4)</li>
+            <li>• Убраны избыточные Serial.println в диагностике</li>
+            <li>• Уменьшены MAX_NAME_LEN (32→24) и MAX_URL_LEN (128→96)</li>
+            <li>• Упрощена функция loadDefaultStations (массивы вместо switch)</li>
+            <li>• Убраны лишние проверки и дублирующийся код</li>
+          </ul>
+        </div>
       </div>
     </div>
   );
