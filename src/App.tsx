@@ -7,12 +7,11 @@ function App() {
   const [activeTab, setActiveTab] = useState<TabType>('overview');
 
   const tabs: { id: TabType; label: string; icon: string }[] = [
-    { id: 'overview', label: 'NetRadio v.2', icon: '📻' },
-    { id: 'sketch', label: 'Скетч v.2', icon: '💻' },
+    { id: 'overview', label: 'Обзор', icon: '📻' },
+    { id: 'sketch', label: 'Скетч', icon: '💻' },
     { id: 'wiring', label: 'Схема', icon: '🔌' },
     { id: 'stations', label: 'Станции', icon: '📡' },
     { id: 'build', label: 'Сборка', icon: '⚙️' },
-    { id: 'v1', label: 'NetRadio v.1', icon: '📺' },
   ];
 
   return (
@@ -25,11 +24,11 @@ function App() {
               <h1 className="text-3xl font-bold text-emerald-400 flex items-center gap-3">
                 <span className="text-4xl">📻</span> NetRadio v.2
               </h1>
-              <p className="text-gray-400 mt-1">LCD 1602 I2C • Arduino / NodeMCU / STM32 • Based on yoRadio</p>
+              <p className="text-gray-400 mt-1">ESP32 • LCD 1602 I2C • Based on yoRadio</p>
             </div>
             <div className="flex items-center gap-2 flex-wrap">
               <span className="px-3 py-1 bg-green-900/50 text-green-400 rounded-full text-xs border border-green-700">
-                ✓ Универсальный
+                ✓ ESP32 Ready
               </span>
               <span className="px-3 py-1 bg-blue-900/50 text-blue-400 rounded-full text-xs border border-blue-700">
                 v2.0.0
@@ -71,14 +70,13 @@ function App() {
         {activeTab === 'wiring' && <WiringTab />}
         {activeTab === 'stations' && <StationsTab />}
         {activeTab === 'build' && <BuildTab />}
-        {activeTab === 'v1' && <V1InfoTab />}
       </main>
 
       {/* Footer */}
       <footer className="bg-gray-900 border-t border-gray-800 py-6 mt-12">
         <div className="max-w-7xl mx-auto px-4 text-center text-gray-500 text-sm">
-          <p>NetRadio v.2 • LCD 1602 I2C Internet Radio • Based on yoRadio project</p>
-          <p className="mt-1">Arduino • NodeMCU (ESP8266) • STM32 • LiquidCrystal_I2C</p>
+          <p>NetRadio v.2 • ESP32 + LCD 1602 I2C Internet Radio • Based on yoRadio project</p>
+          <p className="mt-1">ESP32 • LiquidCrystal_I2C • ESP32-audioI2S • Web Interface</p>
         </div>
       </footer>
     </div>
@@ -90,16 +88,15 @@ function OverviewTab() {
     <div className="space-y-8">
       {/* Hero */}
       <div className="bg-gradient-to-br from-emerald-900/50 to-teal-900/50 rounded-2xl p-8 border border-emerald-500/20">
-        <h2 className="text-2xl font-bold text-white mb-4">📻 NetRadio v.2 - Универсальное интернет-радио</h2>
+        <h2 className="text-2xl font-bold text-white mb-4">📻 NetRadio v.2 - ESP32 Internet Radio</h2>
         <p className="text-gray-300 leading-relaxed mb-6">
-          Вторая версия интернет-радио на базе идей проекта <a href="https://github.com/e2002/yoradio" className="text-emerald-400 hover:underline" target="_blank">yoRadio</a>.
-          Использует LCD 1602 дисплей с I2C модулем. Поддерживает Arduino, NodeMCU (ESP8266) и STM32.
-          Красивый веб-интерфейс для управления станциями.
+          Интернет-радио на базе ESP32 с LCD дисплеем 1602 (I2C интерфейс). Создано на основе идей проекта <a href="https://github.com/e2002/yoradio" className="text-emerald-400 hover:underline" target="_blank">yoRadio</a>.
+          Простая сборка, красивый веб-интерфейс, 20 радиостанций по умолчанию.
         </p>
         
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <FeatureCard icon="🖥️" title="LCD 1602 I2C" desc="Синий дисплей 16x2 с I2C модулем. Простое подключение, всего 4 провода." />
-          <FeatureCard icon="🌐" title="Универсальный" desc="Работает на Arduino, NodeMCU (ESP8266), STM32. Условная компиляция." />
+          <FeatureCard icon="⚡" title="ESP32 Power" desc="Мощный процессор, WiFi, Bluetooth. 4MB Flash, 520KB RAM." />
           <FeatureCard icon="🎵" title="yoRadio идеи" desc="Взяты лучшие идеи из yoRadio: веб-интерфейс, управление, сохранение настроек." />
         </div>
       </div>
@@ -239,16 +236,23 @@ function SketchTab() {
     <div className="space-y-6">
       <div className="flex items-center justify-between flex-wrap gap-4">
         <div>
-          <h2 className="text-2xl font-bold text-white">💻 Arduino Скетч v.2</h2>
-          <p className="text-gray-400 mt-1">Универсальный код для Arduino / NodeMCU / STM32</p>
+          <h2 className="text-2xl font-bold text-white">💻 Arduino Скетч для ESP32</h2>
+          <p className="text-gray-400 mt-1">Полный код прошивки для ESP32 + LCD 1602 I2C</p>
         </div>
         <div className="flex gap-3 flex-wrap">
           <a
-            href="/NetRadio_v2.ino"
-            download="NetRadio_v2.ino"
+            href="/NetRadio_v2_ESP32.ino"
+            download="NetRadio_v2_ESP32.ino"
             className="px-6 py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg transition-colors flex items-center gap-2 font-bold"
           >
-            ⬇️ Скачать NetRadio_v2.ino
+            ⬇️ Скачать NetRadio_v2_ESP32.ino
+          </a>
+          <a
+            href="/README_ESP32.md"
+            download="README_ESP32.md"
+            className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors flex items-center gap-2 font-bold"
+          >
+            📖 Скачать инструкцию
           </a>
         </div>
       </div>
@@ -329,102 +333,103 @@ function WiringTab() {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-2xl font-bold text-white">🔌 Схема подключения</h2>
-        <p className="text-gray-400 mt-1">Подключение LCD 1602 I2C, кнопок и I2S DAC</p>
+        <h2 className="text-2xl font-bold text-white">🔌 Схема подключения (ESP32)</h2>
+        <p className="text-gray-400 mt-1">Подключение LCD 1602 I2C, кнопок и I2S DAC к ESP32</p>
       </div>
 
       {/* LCD Connection */}
       <div className="bg-gray-900 rounded-xl p-6 border border-gray-800">
-        <h3 className="text-lg font-bold text-emerald-400 mb-4">🖥️ LCD 1602 I2C</h3>
+        <h3 className="text-lg font-bold text-emerald-400 mb-4">🖥️ LCD 1602 I2C → ESP32</h3>
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
               <tr className="text-gray-500 border-b border-gray-700">
                 <th className="text-left py-2 px-3">LCD I2C</th>
-                <th className="text-left py-2 px-3">NodeMCU</th>
-                <th className="text-left py-2 px-3">Arduino</th>
+                <th className="text-left py-2 px-3">ESP32</th>
                 <th className="text-left py-2 px-3">Назначение</th>
+                <th className="text-left py-2 px-3">Примечание</th>
               </tr>
             </thead>
             <tbody className="text-gray-300">
-              <tr className="border-b border-gray-800"><td className="py-2 px-3 font-mono text-yellow-400">GND</td><td className="py-2 px-3">GND</td><td className="py-2 px-3">GND</td><td className="py-2 px-3">Земля</td></tr>
-              <tr className="border-b border-gray-800"><td className="py-2 px-3 font-mono text-yellow-400">VCC</td><td className="py-2 px-3">5V</td><td className="py-2 px-3">5V</td><td className="py-2 px-3">Питание</td></tr>
-              <tr className="border-b border-gray-800"><td className="py-2 px-3 font-mono text-yellow-400">SDA</td><td className="py-2 px-3">D2 (GPIO4)</td><td className="py-2 px-3">A4</td><td className="py-2 px-3">I2C Data</td></tr>
-              <tr><td className="py-2 px-3 font-mono text-yellow-400">SCL</td><td className="py-2 px-3">D1 (GPIO5)</td><td className="py-2 px-3">A5</td><td className="py-2 px-3">I2C Clock</td></tr>
+              <tr className="border-b border-gray-800"><td className="py-2 px-3 font-mono text-yellow-400">GND</td><td className="py-2 px-3">GND</td><td className="py-2 px-3">Земля</td><td className="py-2 px-3">-</td></tr>
+              <tr className="border-b border-gray-800"><td className="py-2 px-3 font-mono text-yellow-400">VCC</td><td className="py-2 px-3">5V</td><td className="py-2 px-3">Питание</td><td className="py-2 px-3">5V, не 3.3V!</td></tr>
+              <tr className="border-b border-gray-800"><td className="py-2 px-3 font-mono text-yellow-400">SDA</td><td className="py-2 px-3">GPIO21</td><td className="py-2 px-3">I2C Data</td><td className="py-2 px-3">Стандартный I2C</td></tr>
+              <tr><td className="py-2 px-3 font-mono text-yellow-400">SCL</td><td className="py-2 px-3">GPIO22</td><td className="py-2 px-3">I2C Clock</td><td className="py-2 px-3">Стандартный I2C</td></tr>
             </tbody>
           </table>
         </div>
+        <p className="text-gray-500 text-sm mt-3">* Адрес I2C: 0x27 (обычно) или 0x3F. Используйте I2C Scanner для проверки.</p>
       </div>
 
       {/* Buttons */}
       <div className="bg-gray-900 rounded-xl p-6 border border-gray-800">
-        <h3 className="text-lg font-bold text-emerald-400 mb-4">🔘 Кнопки (3 шт.)</h3>
+        <h3 className="text-lg font-bold text-emerald-400 mb-4">🔘 Кнопки (3 шт.) → ESP32</h3>
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
               <tr className="text-gray-500 border-b border-gray-700">
                 <th className="text-left py-2 px-3">Кнопка</th>
-                <th className="text-left py-2 px-3">NodeMCU</th>
-                <th className="text-left py-2 px-3">Arduino</th>
+                <th className="text-left py-2 px-3">ESP32</th>
                 <th className="text-left py-2 px-3">Функция</th>
+                <th className="text-left py-2 px-3">Подключение</th>
               </tr>
             </thead>
             <tbody className="text-gray-300">
-              <tr className="border-b border-gray-800"><td className="py-2 px-3 font-mono text-cyan-400">BTN_PREV</td><td className="py-2 px-3">D5 (GPIO14)</td><td className="py-2 px-3">D5</td><td className="py-2 px-3">◀ Предыдущая станция</td></tr>
-              <tr className="border-b border-gray-800"><td className="py-2 px-3 font-mono text-cyan-400">BTN_NEXT</td><td className="py-2 px-3">D6 (GPIO12)</td><td className="py-2 px-3">D6</td><td className="py-2 px-3">▶ Следующая станция</td></tr>
-              <tr><td className="py-2 px-3 font-mono text-cyan-400">BTN_VOL</td><td className="py-2 px-3">D7 (GPIO13)</td><td className="py-2 px-3">D7</td><td className="py-2 px-3">🔊 Громкость +</td></tr>
+              <tr className="border-b border-gray-800"><td className="py-2 px-3 font-mono text-cyan-400">BTN_PREV</td><td className="py-2 px-3">GPIO32</td><td className="py-2 px-3">◀ Предыдущая станция</td><td className="py-2 px-3">GPIO32 → Кнопка → GND</td></tr>
+              <tr className="border-b border-gray-800"><td className="py-2 px-3 font-mono text-cyan-400">BTN_NEXT</td><td className="py-2 px-3">GPIO33</td><td className="py-2 px-3">▶ Следующая станция</td><td className="py-2 px-3">GPIO33 → Кнопка → GND</td></tr>
+              <tr><td className="py-2 px-3 font-mono text-cyan-400">BTN_VOL</td><td className="py-2 px-3">GPIO34</td><td className="py-2 px-3">🔊 Громкость +</td><td className="py-2 px-3">GPIO34 → Кнопка → GND</td></tr>
             </tbody>
           </table>
         </div>
-        <p className="text-gray-500 text-sm mt-3">* Кнопки подключаются: Пин → Кнопка → GND (INPUT_PULLUP)</p>
+        <p className="text-gray-500 text-sm mt-3">* Кнопки подключаются: Пин → Кнопка → GND. Используется INPUT_PULLUP, внешние резисторы не нужны.</p>
       </div>
 
       {/* I2S DAC */}
       <div className="bg-gray-900 rounded-xl p-6 border border-gray-800">
-        <h3 className="text-lg font-bold text-emerald-400 mb-4">🔊 I2S DAC (MAX98357A / PCM5102)</h3>
+        <h3 className="text-lg font-bold text-emerald-400 mb-4">🔊 I2S DAC (MAX98357A / PCM5102) → ESP32</h3>
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
               <tr className="text-gray-500 border-b border-gray-700">
                 <th className="text-left py-2 px-3">DAC Пин</th>
-                <th className="text-left py-2 px-3">NodeMCU</th>
-                <th className="text-left py-2 px-3">Arduino</th>
+                <th className="text-left py-2 px-3">ESP32</th>
                 <th className="text-left py-2 px-3">Назначение</th>
+                <th className="text-left py-2 px-3">Примечание</th>
               </tr>
             </thead>
             <tbody className="text-gray-300">
-              <tr className="border-b border-gray-800"><td className="py-2 px-3 font-mono text-green-400">VIN</td><td className="py-2 px-3">5V</td><td className="py-2 px-3">5V</td><td className="py-2 px-3">Питание</td></tr>
-              <tr className="border-b border-gray-800"><td className="py-2 px-3 font-mono text-green-400">GND</td><td className="py-2 px-3">GND</td><td className="py-2 px-3">GND</td><td className="py-2 px-3">Земля</td></tr>
-              <tr className="border-b border-gray-800"><td className="py-2 px-3 font-mono text-green-400">BCLK</td><td className="py-2 px-3">D6 (GPIO26)</td><td className="py-2 px-3">-</td><td className="py-2 px-3">Bit Clock</td></tr>
-              <tr className="border-b border-gray-800"><td className="py-2 px-3 font-mono text-green-400">LRC</td><td className="py-2 px-3">D5 (GPIO25)</td><td className="py-2 px-3">-</td><td className="py-2 px-3">Word Select</td></tr>
-              <tr><td className="py-2 px-3 font-mono text-green-400">DIN</td><td className="py-2 px-3">D3 (GPIO22)</td><td className="py-2 px-3">-</td><td className="py-2 px-3">Serial Data</td></tr>
+              <tr className="border-b border-gray-800"><td className="py-2 px-3 font-mono text-green-400">VIN/VCC</td><td className="py-2 px-3">5V</td><td className="py-2 px-3">Питание</td><td className="py-2 px-3">5V, не 3.3V!</td></tr>
+              <tr className="border-b border-gray-800"><td className="py-2 px-3 font-mono text-green-400">GND</td><td className="py-2 px-3">GND</td><td className="py-2 px-3">Земля</td><td className="py-2 px-3">-</td></tr>
+              <tr className="border-b border-gray-800"><td className="py-2 px-3 font-mono text-green-400">BCLK</td><td className="py-2 px-3">GPIO26</td><td className="py-2 px-3">Bit Clock</td><td className="py-2 px-3">-</td></tr>
+              <tr className="border-b border-gray-800"><td className="py-2 px-3 font-mono text-green-400">LRC/WS</td><td className="py-2 px-3">GPIO25</td><td className="py-2 px-3">Word Select</td><td className="py-2 px-3">Left/Right Clock</td></tr>
+              <tr><td className="py-2 px-3 font-mono text-green-400">DIN</td><td className="py-2 px-3">GPIO27</td><td className="py-2 px-3">Serial Data</td><td className="py-2 px-3">Audio data</td></tr>
             </tbody>
           </table>
         </div>
-        <p className="text-gray-500 text-sm mt-3">* I2S работает только на ESP8266/ESP32. Arduino не поддерживает I2S.</p>
+        <p className="text-gray-500 text-sm mt-3">* Подключите динамик к выходу DAC. Используйте короткий кабель для I2S.</p>
       </div>
 
       {/* Visual diagram */}
       <div className="bg-gray-900 rounded-xl p-6 border border-gray-800">
-        <h3 className="text-lg font-bold text-emerald-400 mb-4">📐 Визуальная схема (NodeMCU)</h3>
+        <h3 className="text-lg font-bold text-emerald-400 mb-4">📐 Визуальная схема (ESP32)</h3>
         <div className="bg-black rounded-lg p-6 font-mono text-xs text-gray-400 overflow-x-auto">
           <pre>{`
     ┌─────────────────────────────────────────────────────────┐
-    │                    NodeMCU / Wemos                       │
+    │                    ESP32 DevKit V1                       │
     │                                                         │
     │  5V   ──────── LCD VCC, DAC VIN                         │
     │  GND  ──────── LCD GND, DAC GND, Buttons GND           │
     │                                                         │
-    │  D1 (GPIO5) ── LCD SCL                                  │
-    │  D2 (GPIO4) ── LCD SDA                                  │
+    │  GPIO21 ────── LCD SDA                                  │
+    │  GPIO22 ────── LCD SCL                                  │
     │                                                         │
-    │  D5 (GPIO14) ── BTN PREV ──┐                           │
-    │  D6 (GPIO12) ── BTN NEXT ──┤  Кнопки → GND            │
-    │  D7 (GPIO13) ── BTN VOL  ──┘  (INPUT_PULLUP)           │
+    │  GPIO32 ────── BTN PREV ──┐                            │
+    │  GPIO33 ────── BTN NEXT ──┤  Кнопки → GND             │
+    │  GPIO34 ────── BTN VOL  ──┘  (INPUT_PULLUP)            │
     │                                                         │
-    │  D6 (GPIO26) ── DAC BCLK                                │
-    │  D5 (GPIO25) ── DAC LRC                                 │
-    │  D3 (GPIO22) ── DAC DIN                                 │
+    │  GPIO26 ────── DAC BCLK                                 │
+    │  GPIO25 ────── DAC LRC                                  │
+    │  GPIO27 ────── DAC DIN                                  │
     │                                                         │
     │  USB  ──────── Питание / Прошивка                       │
     └─────────────────────────────────────────────────────────┘
@@ -632,51 +637,6 @@ function BuildTab() {
             </tbody>
           </table>
         </div>
-      </div>
-    </div>
-  );
-}
-
-function V1InfoTab() {
-  return (
-    <div className="space-y-6">
-      <div className="bg-purple-900/30 border border-purple-500/50 rounded-lg p-6">
-        <h2 className="text-2xl font-bold text-purple-400 mb-4">📺 NetRadio v.1 (предыдущая версия)</h2>
-        <p className="text-gray-300 mb-4">
-          Первая версия NetRadio использовала TFT 2.4" ILI9341 дисплей и работала только на ESP32.
-          Если у вас есть TFT дисплей - используйте v.1.
-        </p>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="bg-gray-800/50 rounded-lg p-4">
-            <h4 className="text-white font-bold mb-2">NetRadio v.1</h4>
-            <ul className="text-gray-400 text-sm space-y-1">
-              <li>• TFT 2.4" ILI9341 (320x240)</li>
-              <li>• Только ESP32</li>
-              <li>• Цветной дисплей</li>
-              <li>• Время, дата, погода</li>
-              <li>• ~$15 за компоненты</li>
-            </ul>
-          </div>
-          <div className="bg-gray-800/50 rounded-lg p-4">
-            <h4 className="text-white font-bold mb-2">NetRadio v.2</h4>
-            <ul className="text-gray-400 text-sm space-y-1">
-              <li>• LCD 1602 I2C (16x2)</li>
-              <li>• Arduino/ESP8266/STM32</li>
-              <li>• Синий монохромный</li>
-              <li>• Проще и дешевле</li>
-              <li>• ~$8 за компоненты</li>
-            </ul>
-          </div>
-        </div>
-      </div>
-
-      <div className="bg-gray-900 rounded-xl p-6 border border-gray-800">
-        <h3 className="text-lg font-bold text-purple-400 mb-4">🔗 Ссылки на yoRadio</h3>
-        <ul className="text-gray-300 space-y-2">
-          <li><a href="https://github.com/e2002/yoradio" className="text-emerald-400 hover:underline" target="_blank">📦 yoRadio на GitHub</a> - оригинальный проект</li>
-          <li><a href="https://github.com/e2002/yoradio/wiki" className="text-emerald-400 hover:underline" target="_blank">📖 yoRadio Wiki</a> - документация</li>
-          <li><a href="https://4pda.to/forum/index.php?s=&showtopic=1010378" className="text-emerald-400 hover:underline" target="_blank">💬 Обсуждение на 4PDA</a> - русскоязычное сообщество</li>
-        </ul>
       </div>
     </div>
   );

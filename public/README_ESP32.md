@@ -1,27 +1,8 @@
-# 🎵 NetRadio v.2 - ESP32 Internet Radio
+# NetRadio v.2 - ESP32 + LCD 1602 I2C
 
 Интернет-радио на базе ESP32 с LCD дисплеем 1602 (I2C интерфейс)
 
-![NetRadio v.2](https://img.shields.io/badge/Version-2.0-emerald)
-![ESP32](https://img.shields.io/badge/Platform-ESP32-blue)
-![LCD](https://img.shields.io/badge/Display-LCD_1602_I2C-yellow)
-
-## 📋 Описание
-
-NetRadio v.2 - это интернет-радио на базе ESP32 с LCD дисплеем 1602 через I2C интерфейс. Проект создан на основе идей [yoRadio](https://github.com/e2002/yoradio) и адаптирован для простоты сборки и использования.
-
-### ✨ Возможности
-
-- 🎵 Воспроизведение интернет-радиостанций через I2S DAC
-- 📺 LCD дисплей 1602 с I2C модулем (16x2 символа)
-- 🌐 Веб-интерфейс для управления станциями
-- 🔘 Управление 3 кнопками (Prev/Next/Volume)
-- 📡 20 радиостанций Radio Record по умолчанию
-- 💾 Сохранение настроек в NVS память
-- ⏰ Отображение времени (NTP синхронизация)
-- 🔄 Прокрутка длинных названий станций
-
-## 🛠️ Необходимые компоненты
+## 📋 Необходимые компоненты
 
 ### Обязательные:
 - **ESP32 DevKit V1** (или любая плата ESP32)
@@ -68,6 +49,8 @@ BTN_NEXT   →    GPIO33   →    GND
 BTN_VOL    →    GPIO34   →    GND
 ```
 
+**Важно:** Кнопки подключаются между GPIO пином и GND. В коде используется INPUT_PULLUP, поэтому внешние резисторы не нужны.
+
 ## 📚 Необходимые библиотеки
 
 Установите через Arduino Library Manager (Ctrl+Shift+I):
@@ -78,19 +61,19 @@ BTN_VOL    →    GPIO34   →    GND
 
 ## ⚙️ Настройка Arduino IDE
 
-### 1. Установите ESP32 Board Package:
-- File → Preferences
-- Добавьте URL: `https://raw.githubusercontent.com/espressif/arduino-esp32/gh-pages/package_esp32_index.json`
-- Tools → Board → Boards Manager
-- Найдите и установите "esp32 by Espressif Systems"
+1. **Установите ESP32 Board Package:**
+   - File → Preferences
+   - Добавьте URL: `https://raw.githubusercontent.com/espressif/arduino-esp32/gh-pages/package_esp32_index.json`
+   - Tools → Board → Boards Manager
+   - Найдите и установите "esp32 by Espressif Systems"
 
-### 2. Выберите плату:
-- Tools → Board → ESP32 Arduino → "ESP32 Dev Module"
-- Flash Size: "4MB (32Mb)"
-- Partition Scheme: "Default 4MB with spiffs"
-- Upload Speed: "921600"
+2. **Выберите плату:**
+   - Tools → Board → ESP32 Arduino → "ESP32 Dev Module"
+   - Flash Size: "4MB (32Mb)"
+   - Partition Scheme: "Default 4MB with spiffs"
+   - Upload Speed: "921600"
 
-### 3. Установите библиотеки (см. выше)
+3. **Установите библиотеки** (см. выше)
 
 ## 🔧 Определение адреса I2C LCD
 
@@ -170,7 +153,7 @@ void loop() {
 ### Физические кнопки:
 - **BTN_PREV (GPIO32)** - предыдущая станция
 - **BTN_NEXT (GPIO33)** - следующая станция
-- **BTN_VOL (GPIO34)** - увеличить громкость
+- **BTN_VOL (GPIO34)** - увеличить громкость (долгое нажатие - уменьшить)
 
 ### Веб-интерфейс:
 Откройте `http://[IP-адрес-ESP32]` в браузере
@@ -280,18 +263,6 @@ V:12 14:35:22
 Проект основан на идеях yoRadio by e2002
 https://github.com/e2002/yoradio
 
-## 🎉 Благодарности
-
-- [yoRadio](https://github.com/e2002/yoradio) - оригинальный проект
-- [ESP32-audioI2S](https://github.com/schreibfaul1/ESP32-audioI2S) - аудио библиотека
-- [LiquidCrystal_I2C](https://github.com/johnrickman/LiquidCrystal_I2C) - LCD библиотека
-
 ---
 
 **Удачи с вашим NetRadio проектом!** 🎵📻
-
-Если у вас возникли вопросы или проблемы, проверьте:
-1. Все подключения согласно схеме
-2. Правильность адреса I2C LCD
-3. Наличие всех библиотек
-4. Правильность настроек платы в Arduino IDE
