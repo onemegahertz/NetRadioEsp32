@@ -94,10 +94,11 @@ function OverviewTab() {
           Простая сборка, красивый веб-интерфейс, 20 радиостанций по умолчанию.
         </p>
         
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <FeatureCard icon="🖥️" title="LCD 1602 I2C" desc="Синий дисплей 16x2 с I2C модулем. Простое подключение, всего 4 провода." />
-          <FeatureCard icon="⚡" title="ESP32 Power" desc="Мощный процессор, WiFi, Bluetooth. 4MB Flash, 520KB RAM." />
-          <FeatureCard icon="🎵" title="yoRadio идеи" desc="Взяты лучшие идеи из yoRadio: веб-интерфейс, управление, сохранение настроек." />
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <FeatureCard icon="🖥️" title="LCD 1602 I2C" desc="Синий дисплей 16x2 с I2C модулем. 4 режима отображения." />
+          <FeatureCard icon="⚡" title="ESP32 Power" desc="Мощный процессор, WiFi. 4MB Flash, 520KB RAM." />
+          <FeatureCard icon="🌤️" title="Погода" desc="Температура Москвы с OpenWeatherMap. Обновление каждые 30 мин." />
+          <FeatureCard icon="🎛️" title="5 кнопок" desc="Prev, Next, Vol+, Vol-, Mode. Переключение режимов дисплея." />
         </div>
       </div>
 
@@ -186,21 +187,56 @@ function OverviewTab() {
 
       {/* LCD Preview */}
       <div className="bg-gray-900 rounded-xl p-6 border border-gray-800">
-        <h3 className="text-lg font-bold text-emerald-400 mb-4">🖥️ Превью LCD 1602</h3>
-        <div className="flex justify-center">
-          <div className="bg-blue-900 border-4 border-gray-700 rounded-lg p-4 w-[320px] font-mono">
-            <div className="bg-blue-500 text-blue-900 p-2 rounded font-bold text-lg tracking-wider">
-              <div className="truncate">Record          </div>
+        <h3 className="text-lg font-bold text-emerald-400 mb-4">🖥️ Превью LCD 1602 (4 режима)</h3>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="text-center">
+            <div className="bg-blue-900 border-4 border-gray-700 rounded-lg p-2 font-mono">
+              <div className="bg-blue-500 text-blue-900 p-1 rounded font-bold text-sm tracking-wider">
+                <div className="truncate">Record</div>
+              </div>
+              <div className="bg-blue-500 text-blue-900 p-1 rounded font-bold text-sm tracking-wider mt-1">
+                <div>V:12/21</div>
+              </div>
             </div>
-            <div className="bg-blue-500 text-blue-900 p-2 rounded font-bold text-lg tracking-wider mt-1">
-              <div>V:12 14:35:22     </div>
+            <p className="text-gray-400 text-xs mt-2">Режим 1: Громкость</p>
+          </div>
+          <div className="text-center">
+            <div className="bg-blue-900 border-4 border-gray-700 rounded-lg p-2 font-mono">
+              <div className="bg-blue-500 text-blue-900 p-1 rounded font-bold text-sm tracking-wider">
+                <div className="truncate">Record</div>
+              </div>
+              <div className="bg-blue-500 text-blue-900 p-1 rounded font-bold text-sm tracking-wider mt-1">
+                <div>T:-5.2C</div>
+              </div>
             </div>
-            <p className="text-gray-400 text-xs text-center mt-3">LCD 1602 I2C (синий фон, белый текст)</p>
+            <p className="text-gray-400 text-xs mt-2">Режим 2: Температура</p>
+          </div>
+          <div className="text-center">
+            <div className="bg-blue-900 border-4 border-gray-700 rounded-lg p-2 font-mono">
+              <div className="bg-blue-500 text-blue-900 p-1 rounded font-bold text-sm tracking-wider">
+                <div className="truncate">Record</div>
+              </div>
+              <div className="bg-blue-500 text-blue-900 p-1 rounded font-bold text-sm tracking-wider mt-1">
+                <div>T:14:35:22</div>
+              </div>
+            </div>
+            <p className="text-gray-400 text-xs mt-2">Режим 3: Время</p>
+          </div>
+          <div className="text-center">
+            <div className="bg-blue-900 border-4 border-gray-700 rounded-lg p-2 font-mono">
+              <div className="bg-blue-500 text-blue-900 p-1 rounded font-bold text-sm tracking-wider">
+                <div className="truncate">Record</div>
+              </div>
+              <div className="bg-blue-500 text-blue-900 p-1 rounded font-bold text-sm tracking-wider mt-1">
+                <div>IP:192.168</div>
+              </div>
+            </div>
+            <p className="text-gray-400 text-xs mt-2">Режим 4: WiFi</p>
           </div>
         </div>
         <div className="mt-4 text-center text-gray-400 text-sm">
           <p>Строка 1: Название станции (с прокруткой если длинное)</p>
-          <p>Строка 2: Громкость + Время или IP адрес</p>
+          <p>Строка 2: Переключается кнопкой MODE (Громкость → Температура → Время → WiFi)</p>
         </div>
       </div>
 
@@ -376,7 +412,7 @@ function WiringTab() {
 
       {/* Buttons */}
       <div className="bg-gray-900 rounded-xl p-6 border border-gray-800">
-        <h3 className="text-lg font-bold text-emerald-400 mb-4">🔘 Кнопки (3 шт.) → ESP32</h3>
+        <h3 className="text-lg font-bold text-emerald-400 mb-4">🔘 Кнопки (5 шт.) → ESP32</h3>
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
@@ -390,11 +426,49 @@ function WiringTab() {
             <tbody className="text-gray-300">
               <tr className="border-b border-gray-800"><td className="py-2 px-3 font-mono text-cyan-400">BTN_PREV</td><td className="py-2 px-3">GPIO32</td><td className="py-2 px-3">◀ Предыдущая станция</td><td className="py-2 px-3">GPIO32 → Кнопка → GND</td></tr>
               <tr className="border-b border-gray-800"><td className="py-2 px-3 font-mono text-cyan-400">BTN_NEXT</td><td className="py-2 px-3">GPIO33</td><td className="py-2 px-3">▶ Следующая станция</td><td className="py-2 px-3">GPIO33 → Кнопка → GND</td></tr>
-              <tr><td className="py-2 px-3 font-mono text-cyan-400">BTN_VOL</td><td className="py-2 px-3">GPIO34</td><td className="py-2 px-3">🔊 Громкость +</td><td className="py-2 px-3">GPIO34 → Кнопка → GND</td></tr>
+              <tr className="border-b border-gray-800"><td className="py-2 px-3 font-mono text-cyan-400">BTN_VOL_UP</td><td className="py-2 px-3">GPIO34</td><td className="py-2 px-3">🔊 Громкость +</td><td className="py-2 px-3">GPIO34 → Кнопка → GND</td></tr>
+              <tr className="border-b border-gray-800"><td className="py-2 px-3 font-mono text-cyan-400">BTN_VOL_DOWN</td><td className="py-2 px-3">GPIO14</td><td className="py-2 px-3">🔉 Громкость -</td><td className="py-2 px-3">GPIO14 → Кнопка → GND</td></tr>
+              <tr><td className="py-2 px-3 font-mono text-cyan-400">BTN_MODE</td><td className="py-2 px-3">GPIO15</td><td className="py-2 px-3">🔄 Смена режима дисплея</td><td className="py-2 px-3">GPIO15 → Кнопка → GND</td></tr>
             </tbody>
           </table>
         </div>
         <p className="text-gray-500 text-sm mt-3">* Кнопки подключаются: Пин → Кнопка → GND. Используется INPUT_PULLUP, внешние резисторы не нужны.</p>
+      </div>
+
+      {/* Display Modes */}
+      <div className="bg-gray-900 rounded-xl p-6 border border-gray-800">
+        <h3 className="text-lg font-bold text-emerald-400 mb-4">🖥️ Режимы дисплея (кнопка MODE)</h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="bg-blue-900/20 border border-blue-700/50 rounded-lg p-4">
+            <h4 className="text-blue-400 font-bold mb-2">Режим 1: Громкость</h4>
+            <div className="bg-blue-950 p-2 font-mono text-sm text-blue-300">
+              <div>Record          </div>
+              <div>V:12/21         </div>
+            </div>
+          </div>
+          <div className="bg-green-900/20 border border-green-700/50 rounded-lg p-4">
+            <h4 className="text-green-400 font-bold mb-2">Режим 2: Температура</h4>
+            <div className="bg-green-950 p-2 font-mono text-sm text-green-300">
+              <div>Record          </div>
+              <div>T:-5.2C         </div>
+            </div>
+          </div>
+          <div className="bg-yellow-900/20 border border-yellow-700/50 rounded-lg p-4">
+            <h4 className="text-yellow-400 font-bold mb-2">Режим 3: Время</h4>
+            <div className="bg-yellow-950 p-2 font-mono text-sm text-yellow-300">
+              <div>Record          </div>
+              <div>T:14:35:22      </div>
+            </div>
+          </div>
+          <div className="bg-purple-900/20 border border-purple-700/50 rounded-lg p-4">
+            <h4 className="text-purple-400 font-bold mb-2">Режим 4: WiFi</h4>
+            <div className="bg-purple-950 p-2 font-mono text-sm text-purple-300">
+              <div>Record          </div>
+              <div>IP:192.168.1.100</div>
+            </div>
+          </div>
+        </div>
+        <p className="text-gray-500 text-sm mt-3">* Нажимайте кнопку MODE для переключения между режимами. Режим сохраняется в памяти.</p>
       </div>
 
       {/* I2S DAC */}
@@ -424,7 +498,7 @@ function WiringTab() {
 
       {/* Visual diagram */}
       <div className="bg-gray-900 rounded-xl p-6 border border-gray-800">
-        <h3 className="text-lg font-bold text-emerald-400 mb-4">📐 Визуальная схема (ESP32)</h3>
+        <h3 className="text-lg font-bold text-emerald-400 mb-4">📐 Визуальная схема (ESP32 + 5 кнопок)</h3>
         <div className="bg-black rounded-lg p-6 font-mono text-xs text-gray-400 overflow-x-auto">
           <pre>{`
     ┌─────────────────────────────────────────────────────────┐
@@ -436,9 +510,11 @@ function WiringTab() {
     │  GPIO21 ────── LCD SDA                                  │
     │  GPIO22 ────── LCD SCL                                  │
     │                                                         │
-    │  GPIO32 ────── BTN PREV ──┐                            │
-    │  GPIO33 ────── BTN NEXT ──┤  Кнопки → GND             │
-    │  GPIO34 ────── BTN VOL  ──┘  (INPUT_PULLUP)            │
+    │  GPIO32 ────── BTN PREV ───┐                           │
+    │  GPIO33 ────── BTN NEXT ───┤                           │
+    │  GPIO34 ────── BTN VOL+ ───┤  Кнопки → GND            │
+    │  GPIO14 ────── BTN VOL- ───┤  (INPUT_PULLUP)           │
+    │  GPIO15 ────── BTN MODE ───┘                           │
     │                                                         │
     │  GPIO26 ────── DAC BCLK                                 │
     │  GPIO25 ────── DAC LRC                                  │
@@ -454,6 +530,20 @@ function WiringTab() {
     └──────────┘        └──────────┘
           `}</pre>
         </div>
+      </div>
+
+      {/* Weather API Info */}
+      <div className="bg-emerald-900/20 border border-emerald-700/50 rounded-xl p-4">
+        <h4 className="text-emerald-400 font-bold mb-2">🌤️ Погода (OpenWeatherMap)</h4>
+        <p className="text-gray-300 text-sm mb-2">
+          В скетч уже встроен ваш API ключ OpenWeatherMap для получения погоды в Москве.
+        </p>
+        <ul className="text-gray-400 text-sm space-y-1">
+          <li>• <strong>API Key:</strong> cf0cd0d160ba580cef69e35dfe3064c8</li>
+          <li>• <strong>Город:</strong> Moscow, Russia</li>
+          <li>• <strong>Обновление:</strong> каждые 30 минут</li>
+          <li>• <strong>Отображение:</strong> в режиме "Температура" (кнопка MODE)</li>
+        </ul>
       </div>
 
       {/* I2C Scanner */}
