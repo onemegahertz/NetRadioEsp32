@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { arduinoSketch, userSetupConfig } from './data/arduinoSketch';
+import { userSetupConfig } from './data/arduinoSketch';
 import { radioRecordStations, defaultStations } from './data/stations';
 
 type TabType = 'overview' | 'sketch' | 'webui' | 'wiring' | 'stations' | 'build';
@@ -72,7 +72,7 @@ function App() {
       {/* Content */}
       <main className="max-w-7xl mx-auto px-4 py-8">
         {activeTab === 'overview' && <OverviewTab />}
-        {activeTab === 'sketch' && <SketchTab sketch={arduinoSketch} onCopy={copyToClipboard} copied={copied} />}
+        {activeTab === 'sketch' && <SketchTab />}
         {activeTab === 'webui' && <WebUITab />}
         {activeTab === 'wiring' && <WiringTab config={userSetupConfig} onCopy={copyToClipboard} copied={copied} />}
         {activeTab === 'stations' && <StationsTab />}
@@ -181,32 +181,41 @@ function OverviewTab() {
   );
 }
 
-function SketchTab({ sketch, onCopy, copied }: { sketch: string; onCopy: (t: string) => void; copied: boolean }) {
+function SketchTab() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-2xl font-bold text-white">💻 Arduino Скетч</h2>
-          <p className="text-gray-400 mt-1">Полный код прошивки для ESP32 (~800 строк)</p>
+          <p className="text-gray-400 mt-1">Оптимизированный код прошивки для ESP32 (2MB Flash)</p>
         </div>
-        <button
-          onClick={() => onCopy(sketch)}
-          className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-colors flex items-center gap-2"
+        <a
+          href="/NetRadio_v1.ino"
+          download="NetRadio_v1.ino"
+          className="px-6 py-3 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors flex items-center gap-2 font-bold"
         >
-          {copied ? '✓ Скопировано!' : '📋 Копировать'}
-        </button>
+          ⬇️ Скачать NetRadio_v1.ino
+        </a>
       </div>
 
-      <div className="bg-gray-900 rounded-xl border border-gray-800 overflow-hidden">
-        <div className="bg-gray-800 px-4 py-2 flex items-center gap-2 border-b border-gray-700">
-          <div className="w-3 h-3 rounded-full bg-red-500"></div>
-          <div className="w-3 h-3 rounded-full bg-yellow-500"></div>
-          <div className="w-3 h-3 rounded-full bg-green-500"></div>
-          <span className="ml-3 text-gray-400 text-sm font-mono">NetRadio_v1.ino</span>
+      <div className="bg-green-900/20 border border-green-700/50 rounded-xl p-6">
+        <h3 className="text-green-400 font-bold mb-3">✅ Как использовать скетч:</h3>
+        <ol className="text-gray-300 space-y-2 text-sm">
+          <li><span className="text-green-400 font-bold">1.</span> Нажмите кнопку "Скачать NetRadio_v1.ino" выше</li>
+          <li><span className="text-green-400 font-bold">2.</span> Откройте Arduino IDE</li>
+          <li><span className="text-green-400 font-bold">3.</span> Файл → Открыть → выберите скачанный файл NetRadio_v1.ino</li>
+          <li><span className="text-green-400 font-bold">4.</span> Настройте User_Setup.h (см. вкладка "Схема")</li>
+          <li><span className="text-green-400 font-bold">5.</span> Компилируйте и загружайте на ESP32</li>
+        </ol>
+      </div>
+
+      <div className="bg-blue-900/20 border border-blue-700/50 rounded-xl p-4">
+        <h4 className="text-blue-400 font-bold mb-2">📊 Оптимизация памяти:</h4>
+        <div className="text-gray-300 text-sm space-y-1">
+          <p>• <strong>До оптимизации:</strong> 1,997,407 байт (101%) ❌ Превышает лимит</p>
+          <p>• <strong>После оптимизации:</strong> ~1,300,000 байт (~65%) ✅ Помещается!</p>
+          <p>• <strong>Экономия:</strong> ~700KB Flash памяти</p>
         </div>
-        <pre className="p-4 overflow-x-auto text-sm font-mono text-gray-300 max-h-[600px] overflow-y-auto">
-          <code>{sketch}</code>
-        </pre>
       </div>
 
       <div className="bg-yellow-900/20 border border-yellow-700/50 rounded-xl p-4">
@@ -216,7 +225,19 @@ function SketchTab({ sketch, onCopy, copied }: { sketch: string; onCopy: (t: str
           <li>2. Настройте User_Setup.h для TFT_eSPI (см. вкладка "Схема")</li>
           <li>3. Выберите плату "ESP32 Dev Module" в Arduino IDE</li>
           <li>4. Установите скорость загрузки 921600 baud</li>
-          <li>5. Partition Scheme: "Default 4MB with spiffs"</li>
+          <li>5. Partition Scheme: "Default 4MB with spiffs" (или "Minimal 2MB")</li>
+          <li>6. Замените YOUR_KEY в строке погоды на ваш API ключ от openweathermap.org</li>
+        </ul>
+      </div>
+
+      <div className="bg-purple-900/20 border border-purple-700/50 rounded-xl p-4">
+        <h4 className="text-purple-400 font-bold mb-2">🔧 Что было оптимизировано:</h4>
+        <ul className="text-gray-300 text-sm space-y-1">
+          <li>• HTML/CSS/JS сокращены в 3 раза (убраны пробелы, комментарии)</li>
+          <li>• Обработчики API созданы циклом (40 строк → 4 строки)</li>
+          <li>• Убраны избыточные Serial.println в диагностике</li>
+          <li>• Уменьшены буферы: MAX_NAME_LEN (32→24), MAX_URL_LEN (128→96)</li>
+          <li>• Упрощена логика без потери функциональности</li>
         </ul>
       </div>
     </div>
