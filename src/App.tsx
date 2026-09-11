@@ -99,7 +99,8 @@ function OverviewTab() {
         <p className="text-gray-300 leading-relaxed mb-6">
           Полноценный проект интернет-радио на базе ESP32 DevKit с TFT дисплеем 2.4" (ILI9341, SPI, 320x240).
           Воспроизведение интернет-радиостанций через I2S DAC, управление 4 кнопками, 
-          веб-интерфейс для добавления/редактирования станций.
+          веб-интерфейс для добавления/редактирования станций. Отображение текущего времени, погоды (Москва), 
+          названия станции и уровня громкости.
         </p>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <FeatureCard icon="📺" title="TFT Дисплей" desc={'2.4" ILI9341 SPI 320x240. Отображает WiFi, IP, станцию, громкость'} />
@@ -218,8 +219,64 @@ function WebUITab() {
         <p className="text-gray-400 mt-1">Встроенный веб-сервер для управления радио через браузер</p>
       </div>
 
-      {/* Web UI Preview */}
+      {/* TFT Display Preview */}
       <div className="bg-gray-900 rounded-xl border border-gray-800 overflow-hidden">
+        <div className="bg-gray-800 px-4 py-2 border-b border-gray-700">
+          <span className="text-gray-400 text-sm">Превью TFT дисплея (как выглядит на экране 2.4")</span>
+        </div>
+        <div className="flex justify-center p-6 bg-black">
+          <div className="w-[240px] h-[320px] bg-black border-2 border-gray-600 rounded-lg overflow-hidden font-mono text-[10px] relative">
+            {/* Top bar - Time */}
+            <div className="h-[25px] bg-gray-700 flex items-center px-1">
+              <span className="text-cyan-400 text-[8px]">NetRadio v.1</span>
+              <span className="text-white text-[14px] ml-2 font-bold">14:35:22</span>
+              <span className="text-gray-500 text-[8px] ml-auto">15.01.2024</span>
+            </div>
+            {/* Weather */}
+            <div className="h-[35px] bg-[#0a0a2e] px-1 py-1">
+              <span className="text-yellow-400 text-[9px]">Moscow:</span>
+              <span className="text-white text-[14px] ml-1 font-bold">-5°C</span>
+              <span className="text-gray-500 text-[8px] ml-1">❄️</span>
+              <div className="text-gray-500 text-[8px]">небольшой снег</div>
+            </div>
+            {/* Station */}
+            <div className="px-2 mt-2">
+              <div className="text-white text-[16px] font-bold">Record</div>
+              <div className="text-gray-600 text-[9px]">Station 1/20</div>
+            </div>
+            {/* Volume */}
+            <div className="px-2 mt-2">
+              <div className="text-yellow-400 text-[9px]">Volume:</div>
+              <div className="h-[12px] bg-gray-700 rounded mt-1 relative">
+                <div className="h-full bg-green-500 rounded" style={{width: '57%'}}></div>
+                <div className="absolute inset-0 border border-white rounded"></div>
+              </div>
+              <div className="text-white text-[9px] mt-1">12/21</div>
+            </div>
+            {/* WiFi */}
+            <div className="px-2 mt-2">
+              <div className="text-gray-600 text-[8px]">WiFi: MyHomeNetwork</div>
+              <div className="text-gray-600 text-[8px]">IP: 192.168.1.100</div>
+            </div>
+            {/* Status */}
+            <div className="px-2 mt-2 flex justify-between">
+              <span className="text-gray-600 text-[8px]">BTN: Next/Prev/Vol+/-</span>
+              <span className="text-green-400 text-[9px] font-bold">PLAY</span>
+            </div>
+            {/* URL */}
+            <div className="px-2 mt-1">
+              <div className="text-gray-600 text-[7px] truncate">https://radiorecord.hosting...</div>
+            </div>
+            {/* Web */}
+            <div className="px-2 mt-1">
+              <div className="text-cyan-400 text-[8px]">Web: http://192.168.1.100</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Web UI Preview */}
+      <div className="bg-gray-900 rounded-xl border border-gray-800 overflow-hidden mt-6">
         <div className="bg-gray-800 px-4 py-2 border-b border-gray-700">
           <span className="text-gray-400 text-sm">Превью веб-интерфейса (так выглядит в браузере на ESP32)</span>
         </div>
@@ -350,6 +407,23 @@ function WiringTab({ config, onCopy, copied }: { config: string; onCopy: (t: str
         <p className="text-gray-400 mt-1">Распиновка и подключение всех компонентов</p>
       </div>
 
+      {/* White screen fix notice */}
+      <div className="bg-red-900/20 border border-red-700/50 rounded-xl p-4">
+        <h4 className="text-red-400 font-bold mb-2">⚠️ ВАЖНО: Исправление белого экрана!</h4>
+        <p className="text-gray-300 text-sm mb-2">
+          Если экран светится белым — <strong>измените пины в User_Setup.h</strong> библиотеки TFT_eSPI:
+        </p>
+        <div className="bg-black rounded-lg p-3 font-mono text-sm text-green-400">
+          <p>#define TFT_CS     5   // было 15</p>
+          <p>#define TFT_DC     4   // было 2</p>
+          <p>#define TFT_RST   15   // было 4</p>
+        </div>
+        <p className="text-gray-400 text-sm mt-2">
+          Также убедитесь что закомментированы ВСЕ другие драйверы в User_Setup.h, 
+          кроме <code className="text-yellow-400">#define ILI9341_DRIVER</code>
+        </p>
+      </div>
+
       {/* Wiring Diagram */}
       <div className="bg-gray-900 rounded-xl p-6 border border-gray-800">
         <h3 className="text-lg font-bold text-cyan-400 mb-4">ESP32 DevKit → TFT ILI9341 (SPI)</h3>
@@ -366,9 +440,9 @@ function WiringTab({ config, onCopy, copied }: { config: string; onCopy: (t: str
             <tbody className="text-gray-300">
               <tr className="border-b border-gray-800"><td className="py-2 px-3 font-mono text-yellow-400">VCC</td><td className="py-2 px-3">3.3V</td><td className="py-2 px-3">Питание</td><td className="py-2 px-3"><span className="inline-block w-3 h-3 bg-red-500 rounded mr-1"></span>Красный</td></tr>
               <tr className="border-b border-gray-800"><td className="py-2 px-3 font-mono text-yellow-400">GND</td><td className="py-2 px-3">GND</td><td className="py-2 px-3">Земля</td><td className="py-2 px-3"><span className="inline-block w-3 h-3 bg-gray-800 rounded mr-1 border border-gray-600"></span>Чёрный</td></tr>
-              <tr className="border-b border-gray-800"><td className="py-2 px-3 font-mono text-yellow-400">CS</td><td className="py-2 px-3">GPIO 15</td><td className="py-2 px-3">Chip Select</td><td className="py-2 px-3"><span className="inline-block w-3 h-3 bg-orange-500 rounded mr-1"></span>Оранжевый</td></tr>
-              <tr className="border-b border-gray-800"><td className="py-2 px-3 font-mono text-yellow-400">RESET</td><td className="py-2 px-3">GPIO 4</td><td className="py-2 px-3">Reset</td><td className="py-2 px-3"><span className="inline-block w-3 h-3 bg-yellow-500 rounded mr-1"></span>Жёлтый</td></tr>
-              <tr className="border-b border-gray-800"><td className="py-2 px-3 font-mono text-yellow-400">DC</td><td className="py-2 px-3">GPIO 2</td><td className="py-2 px-3">Data/Command</td><td className="py-2 px-3"><span className="inline-block w-3 h-3 bg-white rounded mr-1"></span>Белый</td></tr>
+              <tr className="border-b border-gray-800"><td className="py-2 px-3 font-mono text-yellow-400">CS</td><td className="py-2 px-3 font-bold text-green-400">GPIO 5</td><td className="py-2 px-3">Chip Select</td><td className="py-2 px-3"><span className="inline-block w-3 h-3 bg-orange-500 rounded mr-1"></span>Оранжевый</td></tr>
+              <tr className="border-b border-gray-800"><td className="py-2 px-3 font-mono text-yellow-400">RESET</td><td className="py-2 px-3 font-bold text-green-400">GPIO 15</td><td className="py-2 px-3">Reset</td><td className="py-2 px-3"><span className="inline-block w-3 h-3 bg-yellow-500 rounded mr-1"></span>Жёлтый</td></tr>
+              <tr className="border-b border-gray-800"><td className="py-2 px-3 font-mono text-yellow-400">DC</td><td className="py-2 px-3 font-bold text-green-400">GPIO 4</td><td className="py-2 px-3">Data/Command</td><td className="py-2 px-3"><span className="inline-block w-3 h-3 bg-white rounded mr-1"></span>Белый</td></tr>
               <tr className="border-b border-gray-800"><td className="py-2 px-3 font-mono text-yellow-400">MOSI</td><td className="py-2 px-3">GPIO 23</td><td className="py-2 px-3">SPI Data</td><td className="py-2 px-3"><span className="inline-block w-3 h-3 bg-blue-500 rounded mr-1"></span>Синий</td></tr>
               <tr className="border-b border-gray-800"><td className="py-2 px-3 font-mono text-yellow-400">SCK</td><td className="py-2 px-3">GPIO 18</td><td className="py-2 px-3">SPI Clock</td><td className="py-2 px-3"><span className="inline-block w-3 h-3 bg-purple-500 rounded mr-1"></span>Фиолетовый</td></tr>
               <tr><td className="py-2 px-3 font-mono text-yellow-400">LED</td><td className="py-2 px-3">3.3V</td><td className="py-2 px-3">Backlight</td><td className="py-2 px-3"><span className="inline-block w-3 h-3 bg-pink-500 rounded mr-1"></span>Розовый</td></tr>
@@ -443,7 +517,7 @@ function WiringTab({ config, onCopy, copied }: { config: string; onCopy: (t: str
 
       {/* Visual diagram */}
       <div className="bg-gray-900 rounded-xl p-6 border border-gray-800">
-        <h3 className="text-lg font-bold text-cyan-400 mb-4">📐 Визуальная схема</h3>
+        <h3 className="text-lg font-bold text-cyan-400 mb-4">📐 Визуальная схема (ОБНОВЛЁННАЯ)</h3>
         <div className="bg-black rounded-lg p-6 font-mono text-xs text-gray-400 overflow-x-auto">
           <pre>{`
     ┌─────────────────────────────────────────────────────────┐
@@ -453,9 +527,9 @@ function WiringTab({ config, onCopy, copied }: { config: string; onCopy: (t: str
     │  5V   ──────── DAC VCC                                  │
     │  GND  ──────── TFT GND, DAC GND, Buttons GND           │
     │                                                         │
-    │  GPIO 2 ────── TFT DC                                   │
-    │  GPIO 4 ────── TFT RESET                                │
-    │  GPIO 15 ───── TFT CS                                   │
+    │  GPIO 4 ────── TFT DC        (ИЗМЕНЕНО!)                │
+    │  GPIO 5 ────── TFT CS        (ИЗМЕНЕНО!)                │
+    │  GPIO 15 ───── TFT RESET     (ИЗМЕНЕНО!)                │
     │  GPIO 18 ───── TFT SCK                                  │
     │  GPIO 23 ───── TFT MOSI                                 │
     │                                                         │
@@ -477,6 +551,29 @@ function WiringTab({ config, onCopy, copied }: { config: string; onCopy: (t: str
     │ ILI9341  │        │MAX98357A │
     └──────────┘        └──────────┘
           `}</pre>
+        </div>
+      </div>
+
+      {/* New features */}
+      <div className="bg-gray-900 rounded-xl p-6 border border-gray-800">
+        <h3 className="text-lg font-bold text-cyan-400 mb-4">🆕 Новые функции на дисплее</h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="bg-gray-800/50 rounded-lg p-4">
+            <h4 className="text-white font-bold mb-2">⏰ Время и дата</h4>
+            <p className="text-gray-400 text-sm">Автоматическая синхронизация через NTP (pool.ntp.org). Часовой пояс: Москва UTC+3</p>
+          </div>
+          <div className="bg-gray-800/50 rounded-lg p-4">
+            <h4 className="text-white font-bold mb-2">🌤️ Погода (Москва)</h4>
+            <p className="text-gray-400 text-sm">Обновление каждые 30 минут. Требуется бесплатный API ключ от openweathermap.org</p>
+          </div>
+          <div className="bg-gray-800/50 rounded-lg p-4">
+            <h4 className="text-white font-bold mb-2">📻 Название станции</h4>
+            <p className="text-gray-400 text-sm">Крупным шрифтом отображается текущая станция и её номер в списке</p>
+          </div>
+          <div className="bg-gray-800/50 rounded-lg p-4">
+            <h4 className="text-white font-bold mb-2">🔊 Уровень громкости</h4>
+            <p className="text-gray-400 text-sm">Визуальная шкала + числовое значение (0-21)</p>
+          </div>
         </div>
       </div>
     </div>
@@ -599,6 +696,11 @@ function BuildTab() {
           num={7}
           title="Настройка через веб"
           content="В веб-интерфейсе перейдите в 'WiFi Settings' и укажите вашу домашнюю сеть. Устройство перезагрузится и подключится к WiFi. После этого можно добавлять/редактировать станции."
+        />
+        <StepCard
+          num={8}
+          title="Настройка погоды (опционально)"
+          content={'Для отображения погоды на дисплее:\n1. Зарегистрируйтесь на openweathermap.org (бесплатно)\n2. Получите API ключ в разделе My API keys\n3. В скетче найдите строку: #define WEATHER_API_KEY "YOUR_API_KEY_HERE"\n4. Замените YOUR_API_KEY_HERE на ваш ключ\n5. Перекомпилируйте и загрузите прошивку'}
         />
       </div>
 

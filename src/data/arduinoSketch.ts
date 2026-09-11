@@ -4,6 +4,7 @@ export const arduinoSketch = String.raw`/*
  *  TFT LCD 2.4" ILI9341 SPI 320x240
  *  I2S Audio Output (MAX98357A / PCM5102)
  *  Web Interface for Station Management
+ *  Time & Weather Display
  * ============================================================
  *
  *  Libraries Required (install via Arduino Library Manager):
@@ -13,20 +14,22 @@ export const arduinoSketch = String.raw`/*
  *  - Preferences (built-in ESP32)
  *  - WiFi (built-in ESP32)
  *  - WebServer (built-in ESP32)
+ *  - time by Paul Stoffregen (v1.6.2+)
+ *  - HTTPClient (built-in ESP32)
  *
- *  TFT_eSPI Configuration (User_Setup.h):
+ *  IMPORTANT: TFT_eSPI User_Setup.h Configuration:
  *  #define ILI9341_DRIVER
  *  #define TFT_WIDTH  240
  *  #define TFT_HEIGHT 320
  *  #define TFT_MOSI   23
  *  #define TFT_SCLK   18
- *  #define TFT_CS     15
- *  #define TFT_DC      2
- *  #define TFT_RST     4
+ *  #define TFT_CS      5    // Changed from 15
+ *  #define TFT_DC      4    // Changed from 2
+ *  #define TFT_RST    15    // Changed from 4
  *  #define SPI_FREQUENCY 40000000
  *
  *  Hardware Connections:
- *  TFT ILI9341:  VCC->3.3V, GND->GND, CS->15, RESET->4, DC->2,
+ *  TFT ILI9341:  VCC->3.3V, GND->GND, CS->5, RESET->15, DC->4,
  *                MOSI->23, SCK->18, LED->3.3V
  *  I2S DAC:      BCLK->26, LRC->25, DIN->22, VCC->5V, GND->GND
  *  Buttons:      BTN_NEXT->32, BTN_PREV->33, BTN_VOL_UP->34, BTN_VOL_DOWN->35
@@ -41,11 +44,13 @@ export const arduinoSketch = String.raw`/*
 #include <TFT_eSPI.h>
 #include <SPI.h>
 #include "Audio.h"
+#include <time.h>
+#include <HTTPClient.h>
 
 // ==================== PIN DEFINITIONS ====================
-#define TFT_CS    15
-#define TFT_DC     2
-#define TFT_RST    4
+#define TFT_CS     5
+#define TFT_DC     4
+#define TFT_RST   15
 #define TFT_MOSI  23
 #define TFT_SCLK  18
 
@@ -64,7 +69,18 @@ export const arduinoSketch = String.raw`/*
 #define MAX_URL_LEN     128
 #define VOL_STEP        3
 #define DEBOUNCE_MS     200
-#define SCREEN_UPDATE_MS 500
+#define SCREEN_UPDATE_MS 1000
+#define TIME_UPDATE_MS 60000
+#define WEATHER_UPDATE_MS 1800000
+
+// NTP Settings
+#define NTP_SERVER "pool.ntp.org"
+#define GMT_OFFSET_SEC 10800  // Moscow UTC+3
+#define DAYLIGHT_OFFSET_SEC 0
+
+// Weather API (OpenWeatherMap - free)
+#define WEATHER_API_KEY "YOUR_API_KEY_HERE"  // Get free key from openweathermap.org
+#define WEATHER_CITY "Moscow,RU"
 
 // ==================== GLOBAL OBJECTS ====================
 TFT_eSPI tft = TFT_eSPI();
@@ -86,6 +102,15 @@ bool isPlaying = false;
 bool wifiConnected = false;
 String wifiSSID = "";
 String wifiIP = "";
+
+// Time & Weather
+String currentTime = "";
+String currentDate = "";
+String weatherTemp = "";
+String weatherDesc = "";
+String weatherIcon = "";
+unsigned long lastTimeUpdate = 0;
+unsigned long lastWeatherUpdate = 0;
 
 bool diagTFT = false;
 bool diagI2S = false;
@@ -111,6 +136,9 @@ void showDiagnosticScreen();
 void runDiagnostics();
 void checkButtons();
 void sendJsonOK();
+void updateTime();
+void updateWeather();
+void drawWeatherIcon(int x, int y, String icon);
 
 // ==================== DIAGNOSTIC FUNCTIONS ====================
 void diagPrint(String component, bool status, String details) {
@@ -138,9 +166,20 @@ void runDiagnostics() {
   // 1. Check TFT Display
   Serial.println();
   Serial.println("[1/4] Checking TFT Display (ILI9341 SPI)...");
+  
+  // CRITICAL: Proper TFT initialization
   tft.init();
-  tft.setRotation(0);
+  tft.setRotation(0);  // Portrait mode
+  
+  // Test fill screen to verify communication
+  tft.fillScreen(TFT_RED);
+  delay(200);
+  tft.fillScreen(TFT_GREEN);
+  delay(200);
+  tft.fillScreen(TFT_BLUE);
+  delay(200);
   tft.fillScreen(TFT_BLACK);
+  
   tft.setTextColor(TFT_CYAN, TFT_BLACK);
   tft.setTextSize(2);
   tft.setCursor(10, 10);
@@ -149,6 +188,7 @@ void runDiagnostics() {
   tft.setTextColor(TFT_WHITE, TFT_BLACK);
   tft.setCursor(10, 40);
   tft.println("Running diagnostics...");
+  
   diagTFT = true;
   diagPrint("TFT ILI9341", diagTFT, "240x320 SPI initialized");
 
@@ -202,6 +242,10 @@ void runDiagnostics() {
       wifiIP = WiFi.localIP().toString();
       diagWiFi = true;
       diagPrint("WiFi Station", diagWiFi, "SSID: " + ssid + " IP: " + wifiIP);
+      
+      // Initialize NTP
+      configTime(GMT_OFFSET_SEC, DAYLIGHT_OFFSET_SEC, NTP_SERVER);
+      Serial.println("[NTP] Time sync started");
     } else {
       WiFi.mode(WIFI_AP);
       WiFi.softAP("NetRadio_Setup", "netradio123");
@@ -284,6 +328,95 @@ void showDiagnosticScreen() {
   tft.setTextColor(TFT_GREEN, TFT_BLACK);
   tft.setCursor(10, y + 35);
   tft.print("Web: http://" + wifiIP);
+}
+
+// ==================== TIME & WEATHER ====================
+void updateTime() {
+  if (!wifiConnected) return;
+  
+  struct tm timeinfo;
+  if (!getLocalTime(&timeinfo)) {
+    Serial.println("[NTP] Failed to obtain time");
+    return;
+  }
+  
+  char timeStr[9];
+  char dateStr[11];
+  strftime(timeStr, sizeof(timeStr), "%H:%M:%S", &timeinfo);
+  strftime(dateStr, sizeof(dateStr), "%d.%m.%Y", &timeinfo);
+  
+  currentTime = String(timeStr);
+  currentDate = String(dateStr);
+  
+  Serial.printf("[TIME] %s %s\n", dateStr, timeStr);
+}
+
+void updateWeather() {
+  if (!wifiConnected) return;
+  if (strcmp(WEATHER_API_KEY, "YOUR_API_KEY_HERE") == 0) {
+    Serial.println("[WEATHER] API key not configured");
+    weatherTemp = "N/A";
+    weatherDesc = "No API key";
+    return;
+  }
+  
+  HTTPClient http;
+  String url = "http://api.openweathermap.org/data/2.5/weather?q=";
+  url += WEATHER_CITY;
+  url += "&appid=";
+  url += WEATHER_API_KEY;
+  url += "&units=metric&lang=ru";
+  
+  http.begin(url);
+  int httpCode = http.GET();
+  
+  if (httpCode > 0) {
+    String payload = http.getString();
+    JsonDocument doc;
+    DeserializationError error = deserializeJson(doc, payload);
+    
+    if (!error) {
+      float temp = doc["main"]["temp"];
+      const char* desc = doc["weather"][0]["description"];
+      const char* icon = doc["weather"][0]["icon"];
+      
+      weatherTemp = String(temp, 1) + "°C";
+      weatherDesc = String(desc);
+      weatherIcon = String(icon);
+      
+      Serial.printf("[WEATHER] %s %s\n", weatherTemp.c_str(), weatherDesc.c_str());
+    }
+  } else {
+    Serial.printf("[WEATHER] HTTP error: %d\n", httpCode);
+  }
+  
+  http.end();
+}
+
+void drawWeatherIcon(int x, int y, String icon) {
+  // Simple weather icons using text
+  tft.setTextColor(TFT_YELLOW, TFT_BLACK);
+  tft.setTextSize(2);
+  
+  if (icon.indexOf("01") >= 0) {  // Clear
+    tft.setCursor(x, y);
+    tft.print("*");
+  } else if (icon.indexOf("02") >= 0 || icon.indexOf("03") >= 0 || icon.indexOf("04") >= 0) {  // Clouds
+    tft.setCursor(x, y);
+    tft.print("~");
+  } else if (icon.indexOf("09") >= 0 || icon.indexOf("10") >= 0 || icon.indexOf("11") >= 0) {  // Rain
+    tft.setTextColor(TFT_CYAN, TFT_BLACK);
+    tft.setCursor(x, y);
+    tft.print("/");
+  } else if (icon.indexOf("13") >= 0) {  // Snow
+    tft.setTextColor(TFT_WHITE, TFT_BLACK);
+    tft.setCursor(x, y);
+    tft.print("*");
+  } else if (icon.indexOf("50") >= 0) {  // Mist
+    tft.setTextColor(TFT_DARKGREY, TFT_BLACK);
+    tft.setCursor(x, y);
+    tft.print("=");
+  }
 }
 
 // ==================== STATION MANAGEMENT ====================
@@ -436,39 +569,71 @@ void updateDisplay() {
 
   tft.fillScreen(TFT_BLACK);
 
-  // Header bar
-  tft.fillRect(0, 0, 240, 30, TFT_DARKGREY);
+  // ===== TOP BAR: Time & Date =====
+  tft.fillRect(0, 0, 240, 25, TFT_DARKGREY);
   tft.setTextColor(TFT_CYAN, TFT_DARKGREY);
   tft.setTextSize(1);
-  tft.setCursor(5, 5);
+  tft.setCursor(5, 3);
   tft.print("NetRadio v.1");
-
-  tft.setTextColor(TFT_GREEN, TFT_DARKGREY);
-  tft.setCursor(5, 17);
-  if (wifiConnected) {
-    tft.print("WiFi: " + wifiSSID);
+  
+  tft.setTextColor(TFT_WHITE, TFT_DARKGREY);
+  tft.setTextSize(2);
+  tft.setCursor(5, 12);
+  if (currentTime.length() > 0) {
+    tft.print(currentTime);
   } else {
-    tft.setTextColor(TFT_YELLOW, TFT_DARKGREY);
-    tft.print("AP: NetRadio_Setup");
+    tft.print("--:--:--");
+  }
+  
+  tft.setTextSize(1);
+  tft.setTextColor(TFT_DARKGREY, TFT_DARKGREY);
+  tft.setCursor(150, 15);
+  if (currentDate.length() > 0) {
+    tft.print(currentDate);
+  } else {
+    tft.print("--.--.----");
   }
 
-  tft.setTextColor(TFT_DARKGREY, TFT_BLACK);
-  tft.setCursor(5, 35);
-  tft.print("IP: " + wifiIP);
+  // ===== WEATHER SECTION =====
+  tft.fillRect(0, 30, 240, 35, 0x0A0A2E);
+  tft.setTextColor(TFT_YELLOW, 0x0A0A2E);
+  tft.setTextSize(1);
+  tft.setCursor(5, 33);
+  tft.print("Moscow:");
+  
+  if (weatherTemp.length() > 0) {
+    tft.setTextColor(TFT_WHITE, 0x0A0A2E);
+    tft.setTextSize(2);
+    tft.setCursor(70, 33);
+    tft.print(weatherTemp);
+    
+    tft.setTextSize(1);
+    tft.setTextColor(TFT_DARKGREY, 0x0A0A2E);
+    tft.setCursor(5, 48);
+    String desc = weatherDesc;
+    if (desc.length() > 25) desc = desc.substring(0, 25);
+    tft.print(desc);
+  } else {
+    tft.setTextColor(TFT_DARKGREY, 0x0A0A2E);
+    tft.setTextSize(1);
+    tft.setCursor(70, 38);
+    tft.print("No data");
+  }
 
+  // ===== STATION INFO =====
   tft.setTextColor(TFT_WHITE, TFT_BLACK);
   tft.setTextSize(2);
-  tft.setCursor(10, 65);
+  tft.setCursor(10, 75);
   String name = String(stations[currentStation].name);
   if (name.length() > 14) name = name.substring(0, 14);
   tft.print(name);
 
   tft.setTextSize(1);
   tft.setTextColor(TFT_DARKGREY, TFT_BLACK);
-  tft.setCursor(10, 90);
+  tft.setCursor(10, 95);
   tft.printf("Station %d/%d", currentStation + 1, stationCount);
 
-  // Volume bar
+  // ===== VOLUME BAR =====
   tft.setTextColor(TFT_YELLOW, TFT_BLACK);
   tft.setCursor(10, 115);
   tft.print("Volume:");
@@ -487,24 +652,44 @@ void updateDisplay() {
   tft.setCursor(10, 150);
   tft.printf("%d/21", currentVolume);
 
+  // ===== WIFI INFO =====
   tft.setTextColor(TFT_DARKGREY, TFT_BLACK);
-  tft.setCursor(10, 180);
+  tft.setCursor(10, 170);
+  if (wifiConnected) {
+    tft.print("WiFi: " + wifiSSID);
+  } else {
+    tft.setTextColor(TFT_YELLOW, TFT_BLACK);
+    tft.print("AP: NetRadio_Setup");
+  }
+
+  tft.setTextColor(TFT_DARKGREY, TFT_BLACK);
+  tft.setCursor(10, 185);
+  tft.print("IP: " + wifiIP);
+
+  // ===== STATUS =====
+  tft.setCursor(10, 205);
   tft.print("BTN: Next/Prev/Vol+/-");
 
   if (isPlaying) {
     tft.setTextColor(TFT_GREEN, TFT_BLACK);
-    tft.setCursor(180, 180);
+    tft.setCursor(180, 205);
     tft.print("PLAY");
+  } else {
+    tft.setTextColor(TFT_RED, TFT_BLACK);
+    tft.setCursor(180, 205);
+    tft.print("STOP");
   }
 
+  // ===== URL (truncated) =====
   tft.setTextColor(TFT_DARKGREY, TFT_BLACK);
-  tft.setCursor(10, 200);
+  tft.setCursor(10, 225);
   String url = String(stations[currentStation].url);
   if (url.length() > 30) url = url.substring(0, 30) + "...";
   tft.print(url);
 
+  // ===== WEB INTERFACE HINT =====
   tft.setTextColor(TFT_CYAN, TFT_BLACK);
-  tft.setCursor(10, 220);
+  tft.setCursor(10, 240);
   tft.print("Web: http://" + wifiIP);
 }
 
@@ -643,7 +828,6 @@ const char WEB_HTML_PART3[] PROGMEM =
 "setInterval(function(){fetch('/api/status').then(function(r){return r.json()}).then(function(d){uui(d)})},3000);"
 "</script></body></html>";
 
-// Helper to read PROGMEM string
 String readProgmemStr(const char* progmemStr) {
   String result = "";
   char c;
@@ -682,7 +866,6 @@ void handleDelete(int idx) {
 }
 
 void setupWebServer() {
-  // Serve main page from PROGMEM
   server.on("/", HTTP_GET, []() {
     String html = readProgmemStr(WEB_HTML_PART1);
     html += readProgmemStr(WEB_HTML_PART2);
@@ -690,7 +873,6 @@ void setupWebServer() {
     server.send(200, "text/html", html);
   });
 
-  // API: Status
   server.on("/api/status", HTTP_GET, []() {
     JsonDocument doc;
     doc["ssid"] = wifiSSID;
@@ -699,12 +881,14 @@ void setupWebServer() {
     doc["current"] = currentStation;
     doc["station"] = String(stations[currentStation].name);
     doc["playing"] = isPlaying;
+    doc["time"] = currentTime;
+    doc["date"] = currentDate;
+    doc["weather"] = weatherTemp + " " + weatherDesc;
     String response;
     serializeJson(doc, response);
     server.send(200, "application/json", response);
   });
 
-  // API: Stations list
   server.on("/api/stations", HTTP_GET, []() {
     JsonDocument doc;
     doc["current"] = currentStation;
@@ -719,7 +903,6 @@ void setupWebServer() {
     server.send(200, "application/json", response);
   });
 
-  // API: Controls
   server.on("/api/next", HTTP_GET, []() {
     nextStation();
     sendJsonOK();
@@ -740,7 +923,6 @@ void setupWebServer() {
     sendJsonOK();
   });
 
-  // API: Play stations 0-19
   server.on("/api/play/0", HTTP_GET, []() { handlePlay(0); });
   server.on("/api/play/1", HTTP_GET, []() { handlePlay(1); });
   server.on("/api/play/2", HTTP_GET, []() { handlePlay(2); });
@@ -762,7 +944,6 @@ void setupWebServer() {
   server.on("/api/play/18", HTTP_GET, []() { handlePlay(18); });
   server.on("/api/play/19", HTTP_GET, []() { handlePlay(19); });
 
-  // API: Delete stations 0-19
   server.on("/api/delete/0", HTTP_GET, []() { handleDelete(0); });
   server.on("/api/delete/1", HTTP_GET, []() { handleDelete(1); });
   server.on("/api/delete/2", HTTP_GET, []() { handleDelete(2); });
@@ -784,7 +965,6 @@ void setupWebServer() {
   server.on("/api/delete/18", HTTP_GET, []() { handleDelete(18); });
   server.on("/api/delete/19", HTTP_GET, []() { handleDelete(19); });
 
-  // API: Add/Edit station
   server.on("/api/station", HTTP_POST, []() {
     if (!server.hasArg("plain")) {
       sendJsonError("No data");
@@ -805,14 +985,12 @@ void setupWebServer() {
     int index = doc["index"];
 
     if (index >= 0 && index < stationCount) {
-      // Edit existing
       strncpy(stations[index].name, name, MAX_NAME_LEN - 1);
       stations[index].name[MAX_NAME_LEN - 1] = '\0';
       strncpy(stations[index].url, url, MAX_URL_LEN - 1);
       stations[index].url[MAX_URL_LEN - 1] = '\0';
       Serial.printf("[WEB] Edited station %d: %s\n", index, name);
     } else {
-      // Add new
       if (stationCount < MAX_STATIONS) {
         strncpy(stations[stationCount].name, name, MAX_NAME_LEN - 1);
         stations[stationCount].name[MAX_NAME_LEN - 1] = '\0';
@@ -830,7 +1008,6 @@ void setupWebServer() {
     sendJsonOK();
   });
 
-  // API: Save WiFi
   server.on("/api/wifi", HTTP_POST, []() {
     String body = server.arg("plain");
     JsonDocument doc;
@@ -904,6 +1081,10 @@ void setup() {
 
   if (wifiConnected && stationCount > 0) {
     playStation(currentStation);
+    
+    // Initial time and weather update
+    updateTime();
+    updateWeather();
   }
 
   updateDisplay();
@@ -920,8 +1101,23 @@ void loop() {
   checkButtons();
 
   unsigned long now = millis();
+  
+  // Update display every second
   if (now - lastScreenUpdate > SCREEN_UPDATE_MS) {
     lastScreenUpdate = now;
+    updateDisplay();
+  }
+  
+  // Update time every minute
+  if (now - lastTimeUpdate > TIME_UPDATE_MS) {
+    lastTimeUpdate = now;
+    updateTime();
+  }
+  
+  // Update weather every 30 minutes
+  if (now - lastWeatherUpdate > WEATHER_UPDATE_MS) {
+    lastWeatherUpdate = now;
+    updateWeather();
   }
 }
 `;
@@ -929,8 +1125,7 @@ void loop() {
 export const userSetupConfig = String.raw`
 // ============================================
 // TFT_eSPI User_Setup.h Configuration
-// Add these lines to User_Setup.h in the
-// TFT_eSPI library folder
+// CRITICAL: These pins are different from previous version!
 // ============================================
 
 #define ILI9341_DRIVER
@@ -940,9 +1135,9 @@ export const userSetupConfig = String.raw`
 
 #define TFT_MOSI  23
 #define TFT_SCLK  18
-#define TFT_CS    15
-#define TFT_DC     2
-#define TFT_RST    4
+#define TFT_CS     5    // CHANGED from 15
+#define TFT_DC     4    // CHANGED from 2
+#define TFT_RST   15    // CHANGED from 4
 #define TFT_MISO  -1
 
 #define TFT_BL   -1
@@ -959,4 +1154,7 @@ export const userSetupConfig = String.raw`
 
 #define SPI_FREQUENCY  40000000
 #define SPI_READ_FREQUENCY  20000000
+
+// IMPORTANT: Comment out ALL other driver definitions!
+// Only ILI9341_DRIVER should be active
 `;
