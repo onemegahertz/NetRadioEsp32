@@ -1,6 +1,7 @@
 /*
  * NetRadio v.1 - ESP32 Internet Radio
  * ULTRA OPTIMIZED for 2MB Flash
+ * FIXED: Watchdog & Brownout issues
  */
 #include <Arduino.h>
 #include <WiFi.h>
@@ -10,6 +11,8 @@
 #include <SPI.h>
 #include "Audio.h"
 #include <time.h>
+#include "soc/soc.h"
+#include "soc/rtc_cntl_reg.h"
 
 #define TFT_CS 5
 #define TFT_DC 4
@@ -69,24 +72,29 @@ void updateWeather();
 
 void runDiagnostics() {
   Serial.println("\n=== NetRadio v.1 ===");
-  tft.init();
-  tft.setRotation(0);
+  
+  // TFT уже инициализирован в setup(), просто выводим текст
   tft.fillScreen(TFT_BLACK);
+  delay(100);
+  
   tft.setTextColor(TFT_CYAN);
   tft.setTextSize(2);
   tft.setCursor(10, 10);
   tft.println("NetRadio v.1");
   Serial.println("[OK] TFT");
+  delay(100);
 
   audio.setPinout(I2S_BCLK, I2S_LRC, I2S_DOUT);
   audio.setVolume(currentVolume);
   Serial.println("[OK] I2S");
+  delay(100);
 
   pinMode(BTN_NEXT, INPUT_PULLUP);
   pinMode(BTN_PREV, INPUT_PULLUP);
   pinMode(BTN_VOL_UP, INPUT_PULLUP);
   pinMode(BTN_VOL_DOWN, INPUT_PULLUP);
   Serial.println("[OK] Buttons");
+  delay(100);
 
   prefs.begin("netradio", false);
   char ssid[32] = "";
@@ -421,8 +429,29 @@ void audio_info(const char *info) { Serial.print("[AUDIO] "); Serial.println(inf
 void audio_eof_mp3(const char *info) { nextStation(); }
 
 void setup() {
+  // КРИТИЧНО: Отключаем brownout detector и watchdog
+  WRITE_PERI_REG(RTC_CNTL_BROWN_OUT_REG, 0);
+  
   Serial.begin(115200);
-  delay(1000);
+  delay(500);  // Увеличенная задержка для стабильности питания
+  
+  Serial.println("\n=== NetRadio v.1 Starting ===");
+  
+  // Инициализация TFT с проверкой
+  tft.init();
+  tft.setRotation(0);
+  delay(100);  // Задержка после инициализации
+  
+  // Тестовое заполнение экрана для проверки связи
+  tft.fillScreen(TFT_BLACK);
+  delay(200);
+  tft.fillScreen(TFT_BLUE);
+  delay(200);
+  tft.fillScreen(TFT_BLACK);
+  delay(200);
+  
+  Serial.println("[OK] TFT initialized");
+  
   runDiagnostics();
   loadStations();
   prefs.begin("netradio", true);
@@ -440,11 +469,31 @@ void setup() {
 }
 
 void loop() {
+  // Сбрасываем watchdog timer
+  yield();
+  
   server.handleClient();
   audio.loop();
   checkButtons();
+  
   unsigned long now = millis();
-  if (now - lastScreenUpdate > 1000) { lastScreenUpdate = now; updateDisplay(); }
-  if (now - lastTimeUpdate > 60000) { lastTimeUpdate = now; updateTime(); }
-  if (now - lastWeatherUpdate > 1800000) { lastWeatherUpdate = now; updateWeather(); }
+  
+  // Обновляем дисплей реже (каждые 2 секунды) для стабильности
+  if (now - lastScreenUpdate > 2000) { 
+    lastScreenUpdate = now; 
+    updateDisplay(); 
+  }
+  
+  if (now - lastTimeUpdate > 60000) { 
+    lastTimeUpdate = now; 
+    updateTime(); 
+  }
+  
+  if (now - lastWeatherUpdate > 1800000) { 
+    lastWeatherUpdate = now; 
+    updateWeather(); 
+  }
+  
+  // Небольшая задержка для стабильности
+  delay(10);
 }

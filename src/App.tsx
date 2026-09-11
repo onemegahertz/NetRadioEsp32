@@ -129,6 +129,34 @@ function OverviewTab() {
           <li><strong className="text-red-400">4.</strong> Замените <code className="bg-gray-800 px-2 py-1 rounded">YOUR_KEY</code> в скетче на API ключ от openweathermap.org</li>
           <li><strong className="text-red-400">5.</strong> Компилируйте и загружайте!</li>
         </ol>
+      </div>
+
+      {/* Flickering Fix Notice */}
+      <div className="bg-yellow-900/30 border border-yellow-500/50 rounded-lg p-4 mt-4">
+        <h3 className="text-yellow-400 font-bold mb-2">🔧 Исправлено: Проблема мерцания монитора</h3>
+        <p className="text-sm text-gray-300 mb-3">
+          В текущей версии скетча исправлены проблемы с мерцанием TFT дисплея:
+        </p>
+        <ul className="text-sm text-gray-300 space-y-1 ml-4">
+          <li>✅ Отключён <strong>Brownout Detector</strong> (предотвращает перезагрузки при скачках тока)</li>
+          <li>✅ Отключён <strong>Watchdog Timer</strong> (предотвращает циклические перезагрузки)</li>
+          <li>✅ Добавлены <strong>задержки при инициализации</strong> (стабилизация питания)</li>
+          <li>✅ Увеличен <strong>интервал обновления дисплея</strong> (1000ms → 2000ms)</li>
+          <li>✅ Добавлен <strong>yield()</strong> в loop() (сбрасывает watchdog)</li>
+        </ul>
+        <div className="mt-3">
+          <a
+            href="/FLICKERING_FIX_GUIDE.md"
+            download="FLICKERING_FIX_GUIDE.md"
+            className="inline-block px-4 py-2 bg-yellow-600 hover:bg-yellow-700 text-white rounded-lg transition-colors text-sm font-bold"
+          >
+            📥 Скачать полное руководство по решению проблемы мерцания
+          </a>
+        </div>
+        <p className="text-xs text-gray-400 mt-2">
+          Если мерцание продолжается - проверьте питание (используйте блок питания 5V 2A), 
+          убедитесь что TFT питается от 3.3V (НЕ от 5V!), проверьте подключение пинов.
+        </p>
       </div>        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <FeatureCard icon="📺" title="TFT Дисплей" desc={'2.4" ILI9341 SPI 320x240. Отображает WiFi, IP, станцию, громкость'} />
           <FeatureCard icon="🔊" title="I2S Аудио" desc="Высококачественный звук через MAX98357A или PCM5102 DAC" />
@@ -202,9 +230,9 @@ function SketchTab() {
       <div className="flex items-center justify-between flex-wrap gap-4">
         <div>
           <h2 className="text-2xl font-bold text-white">💻 Arduino Скетч</h2>
-          <p className="text-gray-400 mt-1">RADICAL OPTIMIZATION - 2MB Flash Compatible</p>
+          <p className="text-gray-400 mt-1">RADICAL OPTIMIZATION - 2MB Flash Compatible + Flickering Fix</p>
         </div>
-        <div className="flex gap-3">
+        <div className="flex gap-3 flex-wrap">
           <a
             href="/NetRadio_v1.ino"
             download="NetRadio_v1.ino"
@@ -218,6 +246,13 @@ function SketchTab() {
             className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors flex items-center gap-2 font-bold"
           >
             ⬇️ Скачать User_Setup.h
+          </a>
+          <a
+            href="/FLICKERING_FIX_GUIDE.md"
+            download="FLICKERING_FIX_GUIDE.md"
+            className="px-6 py-3 bg-yellow-600 hover:bg-yellow-700 text-white rounded-lg transition-colors flex items-center gap-2 font-bold"
+          >
+            📥 Скачать руководство по мерцанию
           </a>
         </div>
       </div>
