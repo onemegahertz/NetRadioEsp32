@@ -314,14 +314,15 @@ void volumeDown() {
 
 // ==================== DISPLAY ====================
 void updateDisplay() {
-  lcd.clear();
+  // OPTIMIZED: Don't clear entire screen - only update changed characters
+  // This eliminates flickering
   
   // Line 1: Station name (scrolling if needed)
   lcd.setCursor(0, 0);
   String name = String(stations[currentStation].name);
   
   if (name.length() > 16) {
-    // Scrolling text
+    // Scrolling text - only write the 16 characters we need
     String scrollText = name + "   ";
     int len = scrollText.length();
     for (int i = 0; i < 16; i++) {
@@ -330,22 +331,34 @@ void updateDisplay() {
     scrollPos = (scrollPos + 1) % len;
   } else {
     lcd.print(name);
-    // Pad with spaces
+    // Pad with spaces to fill 16 characters
     for (int i = name.length(); i < 16; i++) {
       lcd.print(' ');
     }
   }
   
-  // Line 2: Volume + Time/IP
+  // Line 2: Volume + Time/IP - only update if changed
   lcd.setCursor(0, 1);
   lcd.print("V:");
+  
+  // Volume (2 digits)
+  if (currentVolume < 10) {
+    lcd.print(" ");
+  }
   lcd.print(currentVolume);
   lcd.print(" ");
   
+  // Time or IP (8 characters)
   if (strlen(currentTime) > 0) {
     lcd.print(currentTime);
   } else {
     lcd.print(wifiIP);
+  }
+  
+  // Pad remaining space
+  int printed = 3 + 2 + 1 + 8; // "V:" + vol + " " + time
+  for (int i = printed; i < 16; i++) {
+    lcd.print(' ');
   }
 }
 

@@ -325,6 +325,19 @@ function SketchTab() {
           <li>5. Используйте блок питания 5V 2A для стабильной работы</li>
         </ul>
       </div>
+
+      <div className="bg-blue-900/20 border border-blue-700/50 rounded-xl p-4">
+        <h4 className="text-blue-400 font-bold mb-2">💡 Решение проблемы мерцания:</h4>
+        <p className="text-gray-300 text-sm mb-2">
+          Если нижний ряд дисплея мерцает - это не ошибка сборки! Проблема в частом обновлении экрана.
+        </p>
+        <ul className="text-gray-300 text-sm space-y-1">
+          <li>✅ <strong>Решение:</strong> Обновлённый скетч использует оптимизированное обновление</li>
+          <li>✅ <strong>Что изменилось:</strong> Убран <code className="bg-gray-800 px-2 py-0.5 rounded">lcd.clear()</code></li>
+          <li>✅ <strong>Результат:</strong> Дисплей обновляется только частично, без мерцания</li>
+          <li>✅ <strong>Действие:</strong> Скачайте обновлённый скетч и загрузите заново</li>
+        </ul>
+      </div>
     </div>
   );
 }
