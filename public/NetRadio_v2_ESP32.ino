@@ -277,7 +277,7 @@ void setup() {
   delay(500);
   
   // LCD init
-  lcd.init();
+  lcd.begin(16, 2);  // 16 columns, 2 rows
   lcd.backlight();
   lcd.clear();
   lcd.setCursor(0, 0); lcd.print("  NetRadio v.2  ");
