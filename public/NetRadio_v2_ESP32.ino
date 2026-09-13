@@ -306,24 +306,88 @@ void setup() {
   displayMode = prefs.getInt("mode", 0);
   prefs.end();
   
-  lcd.clear(); lcd.setCursor(0, 0); lcd.print("Connecting WiFi ");
-  
   if (ssid.length() == 0) {
+    // AP mode
+    Serial.println("[WiFi] No saved network, starting AP mode");
+    lcd.clear();
+    lcd.setCursor(0, 0); lcd.print("AP Mode:NetRadio");
+    lcd.setCursor(0, 1); lcd.print("Pass:netradio123");
     WiFi.softAP("NetRadio", "netradio123");
+    delay(1000);
     strcpy(wifiIP, WiFi.softAPIP().toString().c_str());
+    Serial.printf("[WiFi] AP started, IP: %s\n", wifiIP);
   } else {
+    // Station mode
+    Serial.printf("[WiFi] Connecting to: %s\n", ssid.c_str());
+    lcd.clear();
+    lcd.setCursor(0, 0); lcd.print("WiFi:");
+    lcd.print(ssid.substring(0, 11));
+    lcd.setCursor(0, 1); lcd.print("Connecting...   ");
+    
     WiFi.begin(ssid.c_str(), pass.c_str());
-    int a = 0;
-    while (WiFi.status() != WL_CONNECTED && a < 20) { delay(500); a++; }
+    
+    // Wait for connection with timeout
+    int attempts = 0;
+    while (WiFi.status() != WL_CONNECTED && attempts < 30) {
+      delay(500);
+      Serial.print(".");
+      lcd.setCursor(13, 1);
+      lcd.print(attempts % 4 == 0 ? "." : (attempts % 4 == 1 ? ".." : (attempts % 4 == 2 ? "..." : "    ")));
+      attempts++;
+    }
+    
     if (WiFi.status() == WL_CONNECTED) {
-      wifiConnected = true;
-      strncpy(wifiSSID, ssid.c_str(), 23);
-      strcpy(wifiIP, WiFi.localIP().toString().c_str());
-      configTime(10800, 0, "pool.ntp.org");
-      updateWeather();
+      // Wait a bit more for IP to be assigned
+      delay(1000);
+      
+      IPAddress ip = WiFi.localIP();
+      if (ip.toString() != "0.0.0.0") {
+        wifiConnected = true;
+        strncpy(wifiSSID, ssid.c_str(), 23);
+        strcpy(wifiIP, ip.toString().c_str());
+        
+        Serial.printf("\n[WiFi] Connected! SSID: %s\n", wifiSSID);
+        Serial.printf("[WiFi] IP: %s\n", wifiIP);
+        Serial.printf("[WiFi] RSSI: %d dBm\n", WiFi.RSSI());
+        
+        lcd.clear();
+        lcd.setCursor(0, 0); lcd.print("WiFi:");
+        lcd.print(ssid.substring(0, 11));
+        lcd.setCursor(0, 1); lcd.print("IP:");
+        lcd.print(wifiIP);
+        delay(2000);
+        
+        configTime(10800, 0, "pool.ntp.org");
+        updateWeather();
+      } else {
+        Serial.println("\n[WiFi] ERROR: Connected but no IP assigned!");
+        lcd.clear();
+        lcd.setCursor(0, 0); lcd.print("WiFi Error:");
+        lcd.setCursor(0, 1); lcd.print("No IP address");
+        delay(2000);
+        
+        // Fallback to AP mode
+        WiFi.mode(WIFI_AP);
+        WiFi.softAP("NetRadio", "netradio123");
+        delay(1000);
+        strcpy(wifiIP, WiFi.softAPIP().toString().c_str());
+        Serial.printf("[WiFi] Fallback to AP mode, IP: %s\n", wifiIP);
+      }
     } else {
+      Serial.println("\n[WiFi] ERROR: Connection failed!");
+      Serial.printf("[WiFi] Status: %d\n", WiFi.status());
+      
+      lcd.clear();
+      lcd.setCursor(0, 0); lcd.print("WiFi Error:");
+      lcd.setCursor(0, 1); lcd.print("Connect failed");
+      delay(2000);
+      
+      // Fallback to AP mode
+      WiFi.mode(WIFI_AP);
       WiFi.softAP("NetRadio", "netradio123");
+      delay(1000);
       strcpy(wifiIP, WiFi.softAPIP().toString().c_str());
+      Serial.printf("[WiFi] Fallback to AP mode, IP: %s\n", wifiIP);
     }
   }
   

@@ -282,14 +282,21 @@ function SketchTab() {
             download="NetRadio_v2_ESP32.ino"
             className="px-6 py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg transition-colors flex items-center gap-2 font-bold"
           >
-            ⬇️ Скачать NetRadio_v2_ESP32.ino
+            ⬇️ Скачать скетч
           </a>
           <a
             href="/README_ESP32.md"
             download="README_ESP32.md"
             className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors flex items-center gap-2 font-bold"
           >
-            📖 Скачать инструкцию
+            📖 Инструкция
+          </a>
+          <a
+            href="/WIFI_DIAGNOSTICS.md"
+            download="WIFI_DIAGNOSTICS.md"
+            className="px-6 py-3 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-colors flex items-center gap-2 font-bold"
+          >
+            📡 Диагностика WiFi
           </a>
         </div>
       </div>
@@ -547,6 +554,47 @@ function WiringTab() {
           <p className="text-gray-400 text-xs mt-1">BTN_VOL_UP: GPIO34 → <span className="text-green-400 font-bold">GPIO4</span> (GPIO34 не поддерживает pull-up)</p>
           <p className="text-gray-400 text-xs">Переподключите кнопку громкости + на GPIO4!</p>
         </div>
+      </div>
+
+      {/* WiFi Diagnostics */}
+      <div className="bg-gray-900 rounded-xl p-6 border border-gray-800">
+        <h3 className="text-lg font-bold text-emerald-400 mb-4">📡 Диагностика WiFi (НОВОЕ!)</h3>
+        <div className="bg-blue-900/20 border border-blue-700/50 rounded-lg p-4 mb-4">
+          <h4 className="text-blue-400 font-bold mb-2">✨ Улучшенная диагностика подключения</h4>
+          <ul className="text-gray-300 text-sm space-y-1">
+            <li>✅ На экране показывается <strong>SSID сети</strong></li>
+            <li>✅ Проверка получения <strong>IP адреса</strong> (защита от 0.0.0.0)</li>
+            <li>✅ Отображение <strong>RSSI</strong> (сила сигнала)</li>
+            <li>✅ Подробные сообщения в <strong>Serial Monitor</strong></li>
+            <li>✅ Автоматический переход в <strong>AP mode</strong> при ошибке</li>
+            <li>✅ Увеличено время ожидания подключения (15 секунд)</li>
+          </ul>
+        </div>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+          <div className="bg-green-900/20 border border-green-700/50 rounded-lg p-3">
+            <h5 className="text-green-400 font-bold text-sm mb-2">✅ Успешное подключение:</h5>
+            <div className="bg-black rounded p-2 font-mono text-xs text-green-300">
+              <div>WiFi:MyHomeNetwork</div>
+              <div>IP:192.168.1.100</div>
+            </div>
+          </div>
+          <div className="bg-red-900/20 border border-red-700/50 rounded-lg p-3">
+            <h5 className="text-red-400 font-bold text-sm mb-2">❌ Ошибка подключения:</h5>
+            <div className="bg-black rounded p-2 font-mono text-xs text-red-300">
+              <div>WiFi Error:</div>
+              <div>Connect failed</div>
+            </div>
+          </div>
+        </div>
+
+        <a
+          href="/WIFI_DIAGNOSTICS.md"
+          download="WIFI_DIAGNOSTICS.md"
+          className="inline-block px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors text-sm font-bold"
+        >
+          📥 Скачать полное руководство по диагностике WiFi
+        </a>
       </div>
 
       {/* Weather API Info */}
