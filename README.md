@@ -70,10 +70,12 @@ DIN        →    GPIO27
 ─────────────────────────────────────────
 BTN_PREV       →    GPIO32   →    GND
 BTN_NEXT       →    GPIO33   →    GND
-BTN_VOL_UP     →    GPIO34   →    GND
+BTN_VOL_UP     →    GPIO4    →    GND  (изменено с GPIO34)
 BTN_VOL_DOWN   →    GPIO14   →    GND
 BTN_MODE       →    GPIO15   →    GND
 ```
+
+**Важно:** GPIO 34-39 на ESP32 не поддерживают внутренний pull-up резистор, поэтому BTN_VOL_UP перенесён на GPIO4.
 
 ## 📚 Необходимые библиотеки
 

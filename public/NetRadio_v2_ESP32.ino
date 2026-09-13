@@ -21,7 +21,7 @@
 #define I2S_DOUT  27
 #define BTN_PREV  32
 #define BTN_NEXT  33
-#define BTN_VOL_UP 34
+#define BTN_VOL_UP 4     // Changed from 34 (input-only, no pull-up)
 #define BTN_VOL_DOWN 14
 #define BTN_MODE  15
 
@@ -296,6 +296,7 @@ void setup() {
   // I2S
   audio.setPinout(I2S_BCLK, I2S_LRC, I2S_DOUT);
   audio.setVolume(currentVolume);
+  audio.setBufferTime(500);  // Reduce buffer to 500ms (default is 1500ms)
   Serial.println("[OK] I2S");
   
   // WiFi

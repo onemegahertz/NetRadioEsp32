@@ -427,11 +427,15 @@ function WiringTab() {
             <tbody className="text-gray-300">
               <tr className="border-b border-gray-800"><td className="py-2 px-3 font-mono text-cyan-400">BTN_PREV</td><td className="py-2 px-3">GPIO32</td><td className="py-2 px-3">◀ Предыдущая станция</td><td className="py-2 px-3">GPIO32 → Кнопка → GND</td></tr>
               <tr className="border-b border-gray-800"><td className="py-2 px-3 font-mono text-cyan-400">BTN_NEXT</td><td className="py-2 px-3">GPIO33</td><td className="py-2 px-3">▶ Следующая станция</td><td className="py-2 px-3">GPIO33 → Кнопка → GND</td></tr>
-              <tr className="border-b border-gray-800"><td className="py-2 px-3 font-mono text-cyan-400">BTN_VOL_UP</td><td className="py-2 px-3">GPIO34</td><td className="py-2 px-3">🔊 Громкость +</td><td className="py-2 px-3">GPIO34 → Кнопка → GND</td></tr>
+              <tr className="border-b border-gray-800"><td className="py-2 px-3 font-mono text-yellow-400">BTN_VOL_UP</td><td className="py-2 px-3 font-bold text-green-400">GPIO4</td><td className="py-2 px-3">🔊 Громкость +</td><td className="py-2 px-3">GPIO4 → Кнопка → GND</td></tr>
               <tr className="border-b border-gray-800"><td className="py-2 px-3 font-mono text-cyan-400">BTN_VOL_DOWN</td><td className="py-2 px-3">GPIO14</td><td className="py-2 px-3">🔉 Громкость -</td><td className="py-2 px-3">GPIO14 → Кнопка → GND</td></tr>
               <tr><td className="py-2 px-3 font-mono text-cyan-400">BTN_MODE</td><td className="py-2 px-3">GPIO15</td><td className="py-2 px-3">🔄 Смена режима дисплея</td><td className="py-2 px-3">GPIO15 → Кнопка → GND</td></tr>
             </tbody>
           </table>
+        </div>
+        <div className="bg-yellow-900/20 border border-yellow-700/50 rounded-lg p-3 mt-3">
+          <p className="text-yellow-400 text-sm font-bold">⚠️ Важно: GPIO 34-39 не поддерживают pull-up!</p>
+          <p className="text-gray-400 text-xs mt-1">BTN_VOL_UP перенесён с GPIO34 на GPIO4. Переподключите кнопку!</p>
         </div>
         <p className="text-gray-500 text-sm mt-3">* Кнопки подключаются: Пин → Кнопка → GND. Используется INPUT_PULLUP, внешние резисторы не нужны.</p>
       </div>
@@ -520,7 +524,7 @@ function WiringTab() {
     │                                                         │
     │  GPIO32 ────── BTN PREV ───┐                           │
     │  GPIO33 ────── BTN NEXT ───┤                           │
-    │  GPIO34 ────── BTN VOL+ ───┤  Кнопки → GND            │
+    │  GPIO4  ────── BTN VOL+ ───┤  Кнопки → GND            │
     │  GPIO14 ────── BTN VOL- ───┤  (INPUT_PULLUP)           │
     │  GPIO15 ────── BTN MODE ───┘                           │
     │                                                         │
@@ -537,6 +541,11 @@ function WiringTab() {
     │ I2C      │        │MAX98357A │
     └──────────┘        └──────────┘
           `}</pre>
+        </div>
+        <div className="bg-yellow-900/20 border border-yellow-700/50 rounded-lg p-3 mt-3">
+          <p className="text-yellow-400 text-sm font-bold">⚠️ Изменён пин кнопки VOL+</p>
+          <p className="text-gray-400 text-xs mt-1">BTN_VOL_UP: GPIO34 → <span className="text-green-400 font-bold">GPIO4</span> (GPIO34 не поддерживает pull-up)</p>
+          <p className="text-gray-400 text-xs">Переподключите кнопку громкости + на GPIO4!</p>
         </div>
       </div>
 
