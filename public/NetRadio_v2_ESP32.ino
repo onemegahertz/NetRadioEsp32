@@ -1,6 +1,6 @@
 /*
- * NetRadio v.2 - ULTRA OPTIMIZED for ESP32 2MB Flash
- * LCD 1602 I2C (direct I2C, no library)
+ * NetRadio v.2 - OPTIMIZED for ESP32 2MB Flash
+ * LCD 1602 I2C with LiquidCrystal_I2C library
  * Weather: OpenWeatherMap Moscow
  * 5 buttons: PREV, NEXT, VOL+, VOL-, MODE
  */
@@ -10,6 +10,7 @@
 #include <WebServer.h>
 #include <Preferences.h>
 #include <Wire.h>
+#include <LiquidCrystal_I2C.h>
 #include "Audio.h"
 #include <time.h>
 
@@ -29,6 +30,7 @@
 #define MAX_URL_LEN 80
 
 // State
+LiquidCrystal_I2C lcd(LCD_ADDR, 16, 2);
 Audio audio;
 WebServer server(80);
 Preferences prefs;
@@ -58,90 +60,6 @@ void deleteStation(int);
 void updateTime();
 void updateWeather();
 void setupWebServer();
-
-// LCD I2C direct control (no library needed!)
-void lcdInit() {
-  Wire.begin(21, 22);
-  Wire.setClock(100000);
-  delay(50);
-  
-  // Init sequence for HD44780
-  Wire.beginTransmission(LCD_ADDR);
-  Wire.write(0x00); Wire.write(0x33); Wire.endTransmission(); delay(5);
-  Wire.beginTransmission(LCD_ADDR);
-  Wire.write(0x00); Wire.write(0x32); Wire.endTransmission(); delay(5);
-  Wire.beginTransmission(LCD_ADDR);
-  Wire.write(0x00); Wire.write(0x28); Wire.endTransmission(); delay(1);
-  Wire.beginTransmission(LCD_ADDR);
-  Wire.write(0x00); Wire.write(0x0C); Wire.endTransmission(); delay(1);
-  Wire.beginTransmission(LCD_ADDR);
-  Wire.write(0x00); Wire.write(0x06); Wire.endTransmission(); delay(1);
-  Wire.beginTransmission(LCD_ADDR);
-  Wire.write(0x00); Wire.write(0x01); Wire.endTransmission(); delay(2);
-  Wire.beginTransmission(LCD_ADDR);
-  Wire.write(0x00); Wire.write(0x80); Wire.endTransmission();
-}
-
-void lcdCmd(uint8_t cmd) {
-  Wire.beginTransmission(LCD_ADDR);
-  Wire.write(0x00);
-  Wire.write((cmd & 0xF0) | 0x0C);
-  Wire.write((cmd & 0xF0) | 0x08);
-  Wire.write(((cmd << 4) & 0xF0) | 0x0C);
-  Wire.write(((cmd << 4) & 0xF0) | 0x08);
-  Wire.endTransmission();
-  delayMicroseconds(50);
-}
-
-void lcdData(uint8_t data) {
-  Wire.beginTransmission(LCD_ADDR);
-  Wire.write(0x40);
-  Wire.write((data & 0xF0) | 0x0C);
-  Wire.write((data & 0xF0) | 0x08);
-  Wire.write(((data << 4) & 0xF0) | 0x0C);
-  Wire.write(((data << 4) & 0xF0) | 0x08);
-  Wire.endTransmission();
-  delayMicroseconds(50);
-}
-
-void lcdSetCursor(uint8_t col, uint8_t row) {
-  lcdCmd(0x80 | (row * 0x40) | col);
-}
-
-void lcdPrint(const char* str) {
-  while (*str) lcdData(*str++);
-}
-
-void lcdPrintChar(char c) {
-  lcdData(c);
-}
-
-void lcdClear() {
-  lcdCmd(0x01);
-  delay(2);
-}
-
-// Diagnostics
-void runDiag() {
-  Serial.println("\n=== NetRadio v.2 ===");
-  lcdInit();
-  lcdClear();
-  lcdSetCursor(0, 0); lcdPrint("  NetRadio v.2  ");
-  lcdSetCursor(0, 1); lcdPrint(" Starting...    ");
-  Serial.println("[OK] LCD");
-  delay(1000);
-  
-  pinMode(BTN_PREV, INPUT_PULLUP);
-  pinMode(BTN_NEXT, INPUT_PULLUP);
-  pinMode(BTN_VOL_UP, INPUT_PULLUP);
-  pinMode(BTN_VOL_DOWN, INPUT_PULLUP);
-  pinMode(BTN_MODE, INPUT_PULLUP);
-  Serial.println("[OK] Buttons");
-  
-  audio.setPinout(I2S_BCLK, I2S_LRC, I2S_DOUT);
-  audio.setVolume(currentVolume);
-  Serial.println("[OK] I2S");
-}
 
 // Stations
 void loadDefaults() {
@@ -236,28 +154,28 @@ void updateTime() {
 // Display
 void updateDisplay() {
   // Line 1: Station (8 chars) + Time (8 chars)
-  lcdSetCursor(0, 0);
+  lcd.setCursor(0, 0);
   const char* name = stations[currentStation].name;
   int len = strlen(name);
   if (len > 8) {
     char buf[9];
     for (int i = 0; i < 8; i++) buf[i] = name[(scrollPos+i) % len];
     buf[8] = 0;
-    lcdPrint(buf);
+    lcd.print(buf);
     scrollPos = (scrollPos+1) % len;
   } else {
-    lcdPrint(name);
-    for (int i = len; i < 8; i++) lcdPrintChar(' ');
+    lcd.print(name);
+    for (int i = len; i < 8; i++) lcd.print(' ');
   }
-  lcdPrint(curTime[0] ? curTime : "--:--:--");
+  lcd.print(curTime[0] ? curTime : "--:--:--");
   
   // Line 2: Mode content
-  lcdSetCursor(0, 1);
+  lcd.setCursor(0, 1);
   switch (displayMode) {
-    case 0: { char b[17]; snprintf(b, 17, "Vol:%d/21       ", currentVolume); lcdPrint(b); break; }
-    case 1: { char b[17]; snprintf(b, 17, "Temp:%-10s", weatherTemp[0] ? weatherTemp : "N/A"); lcdPrint(b); break; }
-    case 2: { char b[17]; snprintf(b, 17, "Date:%-10s", curDate[0] ? curDate : "N/A"); lcdPrint(b); break; }
-    case 3: { char b[17]; snprintf(b, 17, "IP:%-12s", wifiIP); lcdPrint(b); break; }
+    case 0: { char b[17]; snprintf(b, 17, "Vol:%d/21       ", currentVolume); lcd.print(b); break; }
+    case 1: { char b[17]; snprintf(b, 17, "Temp:%-10s", weatherTemp[0] ? weatherTemp : "N/A"); lcd.print(b); break; }
+    case 2: { char b[17]; snprintf(b, 17, "Date:%-10s", curDate[0] ? curDate : "N/A"); lcd.print(b); break; }
+    case 3: { char b[17]; snprintf(b, 17, "IP:%-12s", wifiIP); lcd.print(b); break; }
   }
 }
 
@@ -357,15 +275,37 @@ void audio_eof_mp3(const char *info) { nextStation(); }
 void setup() {
   Serial.begin(115200);
   delay(500);
-  runDiag();
   
+  // LCD init
+  lcd.init();
+  lcd.backlight();
+  lcd.clear();
+  lcd.setCursor(0, 0); lcd.print("  NetRadio v.2  ");
+  lcd.setCursor(0, 1); lcd.print(" Starting...    ");
+  Serial.println("[OK] LCD");
+  delay(1000);
+  
+  // Buttons
+  pinMode(BTN_PREV, INPUT_PULLUP);
+  pinMode(BTN_NEXT, INPUT_PULLUP);
+  pinMode(BTN_VOL_UP, INPUT_PULLUP);
+  pinMode(BTN_VOL_DOWN, INPUT_PULLUP);
+  pinMode(BTN_MODE, INPUT_PULLUP);
+  Serial.println("[OK] Buttons");
+  
+  // I2S
+  audio.setPinout(I2S_BCLK, I2S_LRC, I2S_DOUT);
+  audio.setVolume(currentVolume);
+  Serial.println("[OK] I2S");
+  
+  // WiFi
   prefs.begin("netradio", true);
   String ssid = prefs.getString("ssid", "");
   String pass = prefs.getString("password", "");
   displayMode = prefs.getInt("mode", 0);
   prefs.end();
   
-  lcdClear(); lcdSetCursor(0, 0); lcdPrint("Connecting WiFi ");
+  lcd.clear(); lcd.setCursor(0, 0); lcd.print("Connecting WiFi ");
   
   if (ssid.length() == 0) {
     WiFi.softAP("NetRadio", "netradio123");
