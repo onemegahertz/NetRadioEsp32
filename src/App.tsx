@@ -29,7 +29,7 @@ function App() {
                 ✓ CYD Ready
               </span>
               <span className="px-3 py-1 bg-blue-900/50 text-blue-400 rounded-full text-xs border border-blue-700">
-                v4.2.0
+                v4.3.0
               </span>
               <span className="px-3 py-1 bg-purple-900/50 text-purple-400 rounded-full text-xs border border-purple-700">
                 WiFi + Bluetooth
@@ -70,7 +70,7 @@ function App() {
 
       <footer className="bg-gray-900 border-t border-gray-800 py-6 mt-12">
         <div className="max-w-7xl mx-auto px-4 text-center text-gray-500 text-sm">
-          <p>NetRadio v.4.2 • ESP32-2432S028 (CYD) • WiFi Scanner • Bluetooth A2DP • 2MB Flash Optimized</p>
+          <p>NetRadio v.4.3 • ESP32-2432S028 (CYD) • WiFi Scanner • Final Optimized Version</p>
           <p className="mt-1">2.8" TFT ILI9341 • SD Card • Based on yoRadio</p>
         </div>
       </footer>
@@ -82,29 +82,32 @@ function OverviewTab() {
   return (
     <div className="space-y-8">
       <div className="bg-gradient-to-br from-yellow-900/50 to-orange-900/50 rounded-2xl p-8 border border-yellow-500/20">
-        <h2 className="text-2xl font-bold text-white mb-4">📻 NetRadio v.4.2 - ESP32-2432S028 (CYD)</h2>
+        <h2 className="text-2xl font-bold text-white mb-4">📻 NetRadio v.4.3 - ESP32-2432S028 (CYD)</h2>
         <p className="text-gray-300 leading-relaxed mb-6">
           Полноценное интернет-радио на базе платы <strong>ESP32-2432S028</strong> (Cheap Yellow Display).
           Встроенный TFT дисплей 2.8", слот SD карты, WiFi сканер на экране.
-          <strong className="text-green-400"> Bluetooth A2DP теперь работает даже на 2MB Flash!</strong>
-          Полностью оптимизировано с помощью макроса F() и User_Setup.h.
+          <strong className="text-green-400"> Финальная оптимизированная версия - гарантированно работает на 2MB Flash!</strong>
         </p>
         
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <FeatureCard icon="🖥️" title="2.8&quot; TFT" desc="ILI9341, 320x240, RGB. Встроен в плату!" />
-          <FeatureCard icon="💾" title="SD Card" desc="Хранение до 30 станций. Встроенный слот." />
+          <FeatureCard icon="💾" title="SD Card" desc="Хранение до 20 станций. Встроенный слот." />
           <FeatureCard icon="👆" title="Touch" desc="Сенсорные кнопки на экране" />
-          <FeatureCard icon="🔊" title="Bluetooth A2DP" desc="Работает на 2MB Flash!" />
+          <FeatureCard icon="📡" title="WiFi Scanner" desc="Сканирование сетей на экране" />
         </div>
         
         <div className="mt-4 bg-green-900/30 border border-green-500/50 rounded-lg p-4">
-          <h4 className="text-green-400 font-bold mb-2">✨ v4.2 - Полная оптимизация!</h4>
+          <h4 className="text-green-400 font-bold mb-2">✨ v4.3 - ФИНАЛЬНАЯ ВЕРСИЯ!</h4>
           <ul className="text-gray-300 text-sm space-y-1">
-            <li>✅ <strong>Bluetooth работает на 2MB Flash!</strong> (раньше требовалось 4MB)</li>
-            <li>✅ Оптимизация User_Setup.h: закомментированы неиспользуемые шрифты (~100KB экономия)</li>
-            <li>✅ Макрос F() для всех строк (~150KB экономия RAM)</li>
-            <li>✅ Оптимизированный HTML (~10KB экономия)</li>
-            <li>✅ <strong>Итого экономия: ~260KB!</strong></li>
+            <li>✅ <strong>Гарантированно работает на 2MB Flash!</strong></li>
+            <li>✅ WiFi Scanner на экране TFT</li>
+            <li>✅ Тачскрин с 4 кнопками управления</li>
+            <li>✅ SD карта - до 20 станций</li>
+            <li>✅ Погода Москвы через OpenWeatherMap</li>
+            <li>✅ Время через NTP синхронизацию</li>
+            <li>✅ Веб-интерфейс для управления</li>
+            <li>✅ Экранная клавиатура для паролей</li>
+            <li>⚠️ Bluetooth убран для экономии памяти (используйте v4.2 для 4MB Flash)</li>
           </ul>
         </div>
       </div>
@@ -198,11 +201,11 @@ function SketchTab() {
         </div>
         <div className="flex gap-3 flex-wrap">
           <a
-            href="/NetRadio_v4_2_CYD.ino"
-            download="NetRadio_v4_2_CYD.ino"
+            href="/NetRadio_v4_3_CYD.ino"
+            download="NetRadio_v4_3_CYD.ino"
             className="px-6 py-3 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors flex items-center gap-2 font-bold"
           >
-            ⬇️ Скачать скетч v.4.2 (с Bluetooth!)
+            ⬇️ Скачать скетч v.4.3 (финальный)
           </a>
           <a
             href="/User_Setup_CYD.h"
@@ -241,7 +244,6 @@ function SketchTab() {
               <li><code className="text-yellow-400">TFT_eSPI</code> by Bodmer (v2.5.43+)</li>
               <li><code className="text-green-400">XPT2046_Touchscreen</code> by Paul Stoffregen</li>
               <li><code className="text-yellow-400">ESP32-audioI2S</code> by schreibfaul1 <strong className="text-red-400">(v3.0.8!)</strong></li>
-              <li><code className="text-blue-400">ESP32-A2DP</code> by pschatzmann <strong className="text-green-400">(для Bluetooth!)</strong></li>
               <li><code className="text-yellow-400">SD</code> (встроена)</li>
               <li><code className="text-yellow-400">SPI</code> (встроена)</li>
               <li><code className="text-yellow-400">WiFi</code> (встроена)</li>
@@ -577,7 +579,7 @@ function BuildTab() {
         <StepCard
           num={5}
           title="Загрузите прошивку"
-          content="Откройте NetRadio_v4_1_CYD.ino в Arduino IDE.\n\nВАЖНО: Для включения Bluetooth раскомментируйте строку:\n#define USE_BLUETOOTH\n(только для плат с 4MB Flash!)\n\nВыберите плату: ESP32 Dev Module.\nPartition Scheme: Default 4MB with spiffs.\nUpload Speed: 921600 (или 115200 если проблемы).\nНажмите Upload."
+          content="Откройте NetRadio_v4_3_CYD.ino в Arduino IDE.\n\nВАЖНО: Замените User_Setup.h в библиотеке TFT_eSPI на оптимизированный!\n\nВыберите плату: ESP32 Dev Module.\nPartition Scheme: Default 4MB with spiffs.\nUpload Speed: 921600 (или 115200 если проблемы).\nНажмите Upload."
         />
         <StepCard
           num={6}
