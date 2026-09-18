@@ -220,6 +220,7 @@ function SketchTab() {
             <h4 className="text-white font-bold mb-2">Обязательные:</h4>
             <ul className="text-gray-400 text-sm space-y-2">
               <li><code className="text-yellow-400">TFT_eSPI</code> by Bodmer (v2.5.43+)</li>
+              <li><code className="text-green-400">XPT2046_Touchscreen</code> by Paul Stoffregen ← <strong className="text-green-400">НОВАЯ!</strong></li>
               <li><code className="text-yellow-400">ESP32-audioI2S</code> by schreibfaul1 <strong className="text-red-400">(v3.0.8!)</strong></li>
               <li><code className="text-yellow-400">SD</code> (встроена)</li>
               <li><code className="text-yellow-400">SPI</code> (встроена)</li>
@@ -258,12 +259,32 @@ function SketchTab() {
         <ul className="text-gray-300 text-sm space-y-1">
           <li>• <strong>SD карта</strong> для хранения станций (до 50 станций)</li>
           <li>• <strong>Встроенный TFT</strong> 2.8" ILI9341 (320x240)</li>
+          <li>• <strong>Тачскрин XPT2046</strong> с 4 сенсорными кнопками</li>
           <li>• <strong>RGB LED</strong> для индикации статуса</li>
           <li>• <strong>Встроенный усилитель</strong> звука</li>
           <li>• <strong>4 режима дисплея</strong>: громкость, температура, дата, WiFi</li>
           <li>• <strong>Погода Москвы</strong> через OpenWeatherMap</li>
           <li>• <strong>Веб-интерфейс</strong> для управления</li>
+          <li>• <strong>WiFi настройки</strong> в начале кода для удобства</li>
         </ul>
+      </div>
+
+      <div className="bg-green-900/20 border border-green-700/50 rounded-xl p-4">
+        <h4 className="text-green-400 font-bold mb-2">✅ Что исправлено в новой версии:</h4>
+        <ul className="text-gray-300 text-sm space-y-1">
+          <li>• <strong>Добавлена кнопка VOL-</strong> на экране (теперь 4 кнопки)</li>
+          <li>• <strong>WiFi настройки вынесены</strong> в начало кода</li>
+          <li>• <strong>Убрана кнопка MODE</strong> - используется весь экран</li>
+          <li>• <strong>Исправлен тачскрин</strong> - правильные настройки из Random Nerd Tutorials</li>
+          <li>• <strong>Весь дисплей активен</strong> - нет пустого места внизу</li>
+        </ul>
+        <a
+          href="/ALL_FIXES_GUIDE.md"
+          download="ALL_FIXES_GUIDE.md"
+          className="inline-block mt-3 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors text-sm font-bold"
+        >
+          📥 Скачать полное руководство по исправлениям
+        </a>
       </div>
 
       <div className="bg-orange-900/20 border border-orange-700/50 rounded-xl p-4">
