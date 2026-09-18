@@ -247,6 +247,26 @@ function SketchTab() {
           <li>• <strong>Веб-интерфейс</strong> для управления</li>
         </ul>
       </div>
+
+      <div className="bg-orange-900/20 border border-orange-700/50 rounded-xl p-4">
+        <h4 className="text-orange-400 font-bold mb-2">🖥️ Проблемы с дисплеем (серая полоса)?</h4>
+        <p className="text-gray-300 text-sm mb-2">
+          Если на дисплее TPM408-2.8 появляется серая полоса внизу экрана:
+        </p>
+        <ul className="text-gray-300 text-sm space-y-1 mb-3">
+          <li>• Проверьте настройки <code className="bg-gray-800 px-2 py-0.5 rounded">User_Setup.h</code></li>
+          <li>• Попробуйте разные значения <code className="bg-gray-800 px-2 py-0.5 rounded">tft.setRotation(0-3)</code></li>
+          <li>• Возможно нужен драйвер <strong>ST7789</strong> вместо ILI9341</li>
+          <li>• Проверьте размер дисплея в Serial Monitor</li>
+        </ul>
+        <a
+          href="/DISPLAY_FIX_GUIDE.md"
+          download="DISPLAY_FIX_GUIDE.md"
+          className="inline-block px-4 py-2 bg-orange-600 hover:bg-orange-700 text-white rounded-lg transition-colors text-sm font-bold"
+        >
+          📥 Скачать руководство по исправлению дисплея
+        </a>
+      </div>
     </div>
   );
 }
