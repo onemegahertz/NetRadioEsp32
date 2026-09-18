@@ -186,11 +186,11 @@ function SketchTab() {
         </div>
         <div className="flex gap-3 flex-wrap">
           <a
-            href="/NetRadio_v4_CYD.ino"
-            download="NetRadio_v4_CYD.ino"
+            href="/NetRadio_v4_1_CYD.ino"
+            download="NetRadio_v4_1_CYD.ino"
             className="px-6 py-3 bg-yellow-600 hover:bg-yellow-700 text-white rounded-lg transition-colors flex items-center gap-2 font-bold"
           >
-            ⬇️ Скачать скетч v.3
+            ⬇️ Скачать скетч v.4.1 (оптимизированный)
           </a>
           <a
             href="/User_Setup_CYD.h"
@@ -221,7 +221,6 @@ function SketchTab() {
             <ul className="text-gray-400 text-sm space-y-2">
               <li><code className="text-yellow-400">TFT_eSPI</code> by Bodmer (v2.5.43+)</li>
               <li><code className="text-green-400">XPT2046_Touchscreen</code> by Paul Stoffregen</li>
-              <li><code className="text-blue-400">ESP32-a2dp</code> by pschatzmann ← <strong className="text-blue-400">НОВАЯ для Bluetooth!</strong></li>
               <li><code className="text-yellow-400">ESP32-audioI2S</code> by schreibfaul1 <strong className="text-red-400">(v3.0.8!)</strong></li>
               <li><code className="text-yellow-400">SD</code> (встроена)</li>
               <li><code className="text-yellow-400">SPI</code> (встроена)</li>
