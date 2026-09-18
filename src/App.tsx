@@ -22,7 +22,7 @@ function App() {
               <h1 className="text-3xl font-bold text-yellow-400 flex items-center gap-3">
                 <span className="text-4xl">📻</span> NetRadio v.3
               </h1>
-              <p className="text-gray-400 mt-1">ESP32-2432S028R (CYD) • 2.8" TFT • SD Card • Touch</p>
+              <p className="text-gray-400 mt-1">ESP32-2432S028 (CYD) • 2.8" TFT • SD Card</p>
             </div>
             <div className="flex items-center gap-2 flex-wrap">
               <span className="px-3 py-1 bg-green-900/50 text-green-400 rounded-full text-xs border border-green-700">
@@ -70,8 +70,8 @@ function App() {
 
       <footer className="bg-gray-900 border-t border-gray-800 py-6 mt-12">
         <div className="max-w-7xl mx-auto px-4 text-center text-gray-500 text-sm">
-          <p>NetRadio v.3 • ESP32-2432S028R (CYD) Internet Radio</p>
-          <p className="mt-1">2.8" TFT ILI9341 • SD Card • Touch • Based on yoRadio</p>
+          <p>NetRadio v.3 • ESP32-2432S028 (CYD) Internet Radio</p>
+          <p className="mt-1">2.8" TFT ILI9341 • SD Card • Based on yoRadio</p>
         </div>
       </footer>
     </div>
@@ -82,17 +82,17 @@ function OverviewTab() {
   return (
     <div className="space-y-8">
       <div className="bg-gradient-to-br from-yellow-900/50 to-orange-900/50 rounded-2xl p-8 border border-yellow-500/20">
-        <h2 className="text-2xl font-bold text-white mb-4">📻 NetRadio v.3 - ESP32-2432S028R (CYD)</h2>
+        <h2 className="text-2xl font-bold text-white mb-4">📻 NetRadio v.3 - ESP32-2432S028 (CYD)</h2>
         <p className="text-gray-300 leading-relaxed mb-6">
-          Полноценное интернет-радио на базе платы <strong>ESP32-2432S028R</strong> (Cheap Yellow Display).
-          Встроенный TFT дисплей 2.8", слот SD карты, тачскрин, усилитель звука.
+          Полноценное интернет-радио на базе платы <strong>ESP32-2432S028</strong> (Cheap Yellow Display).
+          Встроенный TFT дисплей 2.8", слот SD карты, усилитель звука.
           Хранение станций на SD карте (до 50 станций).
         </p>
         
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <FeatureCard icon="🖥️" title="2.8&quot; TFT" desc="ILI9341, 320x240, RGB. Встроен в плату!" />
           <FeatureCard icon="💾" title="SD Card" desc="Хранение до 50 станций. Встроенный слот." />
-          <FeatureCard icon="👆" title="Touch" desc="XPT2046 резистивный тачскрин" />
+          <FeatureCard icon="🎨" title="RGB LED" desc="Индикация статуса работы" />
           <FeatureCard icon="🔊" title="Audio" desc="Встроенный усилитель (GPIO 26)" />
         </div>
       </div>
@@ -105,10 +105,10 @@ function OverviewTab() {
             <ul className="text-gray-400 text-sm space-y-1">
               <li>• Встроенный TFT дисплей</li>
               <li>• Встроенный слот SD карты</li>
-              <li>• Встроенный тачскрин</li>
               <li>• Встроенный усилитель звука</li>
               <li>• RGB LED для индикации</li>
               <li>• Датчик освещённости (LDR)</li>
+              <li>• Кнопка BOOT</li>
             </ul>
           </div>
           <div className="bg-gray-800/50 rounded-lg p-4">
@@ -176,7 +176,7 @@ function SketchTab() {
     <div className="space-y-6">
       <div className="flex items-center justify-between flex-wrap gap-4">
         <div>
-          <h2 className="text-2xl font-bold text-white">💻 Arduino Скетч для ESP32-2432S028R</h2>
+          <h2 className="text-2xl font-bold text-white">💻 Arduino Скетч для ESP32-2432S028</h2>
           <p className="text-gray-400 mt-1">Полный код прошивки с SD картой и TFT дисплеем</p>
         </div>
         <div className="flex gap-3 flex-wrap">
@@ -255,7 +255,7 @@ function WiringTab() {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-2xl font-bold text-white">🔌 Распиновка ESP32-2432S028R (CYD)</h2>
+        <h2 className="text-2xl font-bold text-white">🔌 Распиновка ESP32-2432S028 (CYD)</h2>
         <p className="text-gray-400 mt-1">Встроенные компоненты и доступные GPIO</p>
       </div>
 
@@ -439,7 +439,7 @@ function BuildTab() {
     <div className="space-y-6">
       <div>
         <h2 className="text-2xl font-bold text-white">⚙️ Сборка и прошивка</h2>
-        <p className="text-gray-400 mt-1">Пошаговая инструкция для ESP32-2432S028R</p>
+        <p className="text-gray-400 mt-1">Пошаговая инструкция для ESP32-2432S028</p>
       </div>
 
       <div className="space-y-4">

@@ -1,13 +1,13 @@
 /*
- * NetRadio v.3 - Internet Radio for ESP32-2432S028R (CYD)
+ * NetRadio v.3 - Internet Radio for ESP32-2432S028 (CYD)
  * ============================================================
  * Built-in features:
  * - 2.8" TFT ILI9341 (320x240)
  * - MicroSD card slot
- * - Touchscreen XPT2046
  * - Speaker amplifier (GPIO 26)
  * - RGB LED
  * - LDR light sensor
+ * Note: No touchscreen (ESP32-2432S028 without R)
  * ============================================================
  */
 
