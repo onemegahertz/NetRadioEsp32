@@ -681,27 +681,48 @@ void checkTouch() {
   if (!touchscreen.tirqTouched() || !touchscreen.touched()) return;
   
   TS_Point p = touchscreen.getPoint();
-  int x = ::map(p.x, 200, 3700, 1, 320);
-  int y = ::map(p.y, 240, 3800, 1, 240);
+  int x = ::map(p.x, 200, 3700, 0, 320);
+  int y = ::map(p.y, 240, 3800, 0, 240);
   
-  delay(50);
+  // Отладка - показывает координаты касания
+  Serial.printf("[TOUCH] X=%d, Y=%d (Raw: X=%d, Y=%d, Z=%d)\n", x, y, p.x, p.y, p.z);
+  
+  delay(100);  // Увеличил задержку для стабильности
+  
+  // Отладка - показывает текущее меню
+  Serial.printf("[DEBUG] Current menu: %d\n", currentMenu);
   
   switch (currentMenu) {
     case MENU_MAIN:
-      if (x >= 290 && x <= 315 && y >= 5 && y <= 25) {
+      // WiFi кнопка (правый верхний угол)
+      if (x >= 280 && x <= 320 && y >= 0 && y <= 30) {
+        Serial.println("[TOUCH] WiFi button");
         currentMenu = MENU_WIFI_SCAN;
         scanWiFiNetworks();
-      } else if (x >= 10 && x <= 70 && y >= 200 && y <= 230) {
+      }
+      // PREV кнопка (нижний левый)
+      else if (x >= 0 && x <= 80 && y >= 190 && y <= 240) {
+        Serial.println("[TOUCH] PREV button");
         prevStation();
-      } else if (x >= 80 && x <= 140 && y >= 200 && y <= 230) {
+      }
+      // NEXT кнопка
+      else if (x >= 80 && x <= 160 && y >= 190 && y <= 240) {
+        Serial.println("[TOUCH] NEXT button");
         nextStation();
-      } else if (x >= 150 && x <= 210 && y >= 200 && y <= 230) {
+      }
+      // VOL- кнопка
+      else if (x >= 160 && x <= 240 && y >= 190 && y <= 240) {
+        Serial.println("[TOUCH] VOL- button");
         volumeDown();
-      } else if (x >= 220 && x <= 280 && y >= 200 && y <= 230) {
+      }
+      // VOL+ кнопка
+      else if (x >= 240 && x <= 320 && y >= 190 && y <= 240) {
+        Serial.println("[TOUCH] VOL+ button");
         volumeUp();
       }
 #ifdef USE_BLUETOOTH
-      else if (x >= 250 && x <= 310 && y >= 180 && y <= 200) {
+      else if (x >= 240 && x <= 320 && y >= 170 && y <= 200) {
+        Serial.println("[TOUCH] Bluetooth toggle");
         toggleBluetooth();
       }
 #endif

@@ -292,6 +292,26 @@ function SketchTab() {
       </div>
 
       <div className="bg-green-900/20 border border-green-700/50 rounded-xl p-4">
+        <h4 className="text-green-400 font-bold mb-2">🔧 Исправление проблемы с кнопками:</h4>
+        <p className="text-gray-300 text-sm mb-2">
+          Если кнопки на экране не реагируют на касания:
+        </p>
+        <ul className="text-gray-300 text-sm space-y-1 mb-3">
+          <li>• Загрузите обновлённый скетч с исправленными координатами</li>
+          <li>• Откройте Serial Monitor (115200 baud)</li>
+          <li>• Нажмите на кнопку и смотрите отладку: <code className="bg-gray-800 px-2 py-0.5 rounded">[TOUCH] PREV button</code></li>
+          <li>• Если видите координаты но не кнопку - калибруйте тачскрин</li>
+        </ul>
+        <a
+          href="/TOUCH_FIX_GUIDE.md"
+          download="TOUCH_FIX_GUIDE.md"
+          className="inline-block px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors text-sm font-bold"
+        >
+          📥 Скачать руководство по исправлению кнопок
+        </a>
+      </div>
+
+      <div className="bg-green-900/20 border border-green-700/50 rounded-xl p-4">
         <h4 className="text-green-400 font-bold mb-2">✨ Новые возможности v.4:</h4>
         <ul className="text-gray-300 text-sm space-y-1">
           <li>• <strong>WiFi Scanner</strong> - сканирование сетей и быстрое подключение</li>
