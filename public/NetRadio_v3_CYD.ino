@@ -132,8 +132,8 @@ void setup() {
   Serial.println("ESP32-2432S028 (CYD)");
   
   // Initialize TFT
+  // NOTE: Rotation is set in User_Setup.h via #define TFT_setRotation 1
   tft.init();
-  tft.setRotation(1);  // Landscape mode (try 0, 1, 2, or 3 if display issues)
   tft.fillScreen(TFT_BLACK);
   
   // Check if display is working correctly

@@ -187,6 +187,13 @@ function SketchTab() {
           >
             ⬇️ Скачать скетч v.3
           </a>
+          <a
+            href="/User_Setup_CYD.h"
+            download="User_Setup_CYD.h"
+            className="px-6 py-3 bg-orange-600 hover:bg-orange-700 text-white rounded-lg transition-colors flex items-center gap-2 font-bold"
+          >
+            ⬇️ Скачать User_Setup.h
+          </a>
         </div>
       </div>
 
@@ -218,7 +225,7 @@ function SketchTab() {
           </div>
           <div className="bg-gray-800/50 rounded-lg p-4">
             <h4 className="text-white font-bold mb-2">Настройка TFT_eSPI:</h4>
-            <p className="text-gray-400 text-sm mb-2">Откройте User_Setup.h и раскомментируйте:</p>
+            <p className="text-gray-400 text-sm mb-2">Скачайте готовый User_Setup_CYD.h и замените файл в библиотеке TFT_eSPI, или настройте вручную:</p>
             <pre className="bg-black rounded p-2 text-xs text-green-400 overflow-x-auto">
 {`#define ILI9341_DRIVER
 #define TFT_WIDTH  240
@@ -229,8 +236,14 @@ function SketchTab() {
 #define TFT_CS   15
 #define TFT_DC    2
 #define TFT_RST  -1
+
+// ВАЖНО: Ориентация дисплея задаётся здесь!
+// 0 = Portrait, 1 = Landscape (рекомендуется), 2 = Portrait (перевернуто), 3 = Landscape (перевернуто)
+#define TFT_setRotation 1
+
 #define SPI_FREQUENCY 40000000`}
             </pre>
+            <p className="text-yellow-400 text-xs mt-2">⚠️ Не используйте tft.setRotation() в коде! Используйте #define TFT_setRotation в User_Setup.h</p>
           </div>
         </div>
       </div>

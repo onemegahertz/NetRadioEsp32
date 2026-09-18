@@ -35,16 +35,20 @@
 
 ### Шаг 2: Попробуйте разные значения rotation
 
-В скетче найдите строку:
+**ВАЖНО:** Ориентация дисплея задаётся в User_Setup.h через `#define TFT_setRotation`, а НЕ в коде скетча через `tft.setRotation()`!
+
+В файле User_Setup.h найдите строку:
 ```cpp
-tft.setRotation(1);
+#define TFT_setRotation 1
 ```
 
 Попробуйте разные значения:
-- `tft.setRotation(0);` - Portrait (вертикально)
-- `tft.setRotation(1);` - Landscape (горизонтально) ← обычно для CYD
-- `tft.setRotation(2);` - Portrait (перевернуто)
-- `tft.setRotation(3);` - Landscape (перевернуто)
+- `#define TFT_setRotation 0` - Portrait (вертикально, 240x320)
+- `#define TFT_setRotation 1` - Landscape (горизонтально, 320x240) ← РЕКОМЕНДУЕТСЯ для CYD
+- `#define TFT_setRotation 2` - Portrait (перевернуто, 240x320)
+- `#define TFT_setRotation 3` - Landscape (перевернуто, 320x240)
+
+После изменения User_Setup.h перезапустите Arduino IDE и перекомпилируйте скетч.
 
 ### Шаг 3: Если проблема сохраняется - попробуйте ST7789
 
@@ -173,12 +177,15 @@ TFT size: 240x240  ← Неправильно!
 
 Для дисплея TPM408-2.8 на плате CYD:
 
-1. **Используйте ILI9341_DRIVER**
-2. **Установите rotation(1)** для landscape режима
-3. **Убедитесь что TFT_WIDTH = 240 и TFT_HEIGHT = 320**
-4. **SPI_FREQUENCY = 40000000**
+1. **Используйте ILI9341_DRIVER** в User_Setup.h
+2. **Установите `#define TFT_setRotation 1`** в User_Setup.h для landscape режима
+3. **Убедитесь что TFT_WIDTH = 240 и TFT_HEIGHT = 320** в User_Setup.h
+4. **SPI_FREQUENCY = 40000000** в User_Setup.h
+5. **НЕ используйте `tft.setRotation()` в коде скетча!**
 
-Если серая полоса остается, попробуйте **ST7789_DRIVER** с теми же пинами.
+Скачайте готовый файл **User_Setup_CYD.h** из веб-приложения и замените им файл в библиотеке TFT_eSPI.
+
+Если серая полоса остается, попробуйте **ST7789_DRIVER** с теми же пинами в User_Setup.h.
 
 ---
 
