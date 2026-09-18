@@ -20,19 +20,19 @@ function App() {
           <div className="flex items-center justify-between flex-wrap gap-4">
             <div>
               <h1 className="text-3xl font-bold text-yellow-400 flex items-center gap-3">
-                <span className="text-4xl">📻</span> NetRadio v.3
+                <span className="text-4xl">📻</span> NetRadio v.4
               </h1>
-              <p className="text-gray-400 mt-1">ESP32-2432S028 (CYD) • 2.8" TFT • SD Card</p>
+              <p className="text-gray-400 mt-1">ESP32-2432S028 (CYD) • 2.8" TFT • WiFi Scanner • Bluetooth</p>
             </div>
             <div className="flex items-center gap-2 flex-wrap">
               <span className="px-3 py-1 bg-green-900/50 text-green-400 rounded-full text-xs border border-green-700">
                 ✓ CYD Ready
               </span>
               <span className="px-3 py-1 bg-blue-900/50 text-blue-400 rounded-full text-xs border border-blue-700">
-                v3.0.0
+                v4.0.0
               </span>
               <span className="px-3 py-1 bg-purple-900/50 text-purple-400 rounded-full text-xs border border-purple-700">
-                SD Card Storage
+                WiFi + Bluetooth
               </span>
             </div>
           </div>
@@ -70,7 +70,7 @@ function App() {
 
       <footer className="bg-gray-900 border-t border-gray-800 py-6 mt-12">
         <div className="max-w-7xl mx-auto px-4 text-center text-gray-500 text-sm">
-          <p>NetRadio v.3 • ESP32-2432S028 (CYD) Internet Radio</p>
+          <p>NetRadio v.4 • ESP32-2432S028 (CYD) Internet Radio • WiFi Scanner • Bluetooth A2DP</p>
           <p className="mt-1">2.8" TFT ILI9341 • SD Card • Based on yoRadio</p>
         </div>
       </footer>
@@ -186,8 +186,8 @@ function SketchTab() {
         </div>
         <div className="flex gap-3 flex-wrap">
           <a
-            href="/NetRadio_v3_CYD.ino"
-            download="NetRadio_v3_CYD.ino"
+            href="/NetRadio_v4_CYD.ino"
+            download="NetRadio_v4_CYD.ino"
             className="px-6 py-3 bg-yellow-600 hover:bg-yellow-700 text-white rounded-lg transition-colors flex items-center gap-2 font-bold"
           >
             ⬇️ Скачать скетч v.3
@@ -220,7 +220,8 @@ function SketchTab() {
             <h4 className="text-white font-bold mb-2">Обязательные:</h4>
             <ul className="text-gray-400 text-sm space-y-2">
               <li><code className="text-yellow-400">TFT_eSPI</code> by Bodmer (v2.5.43+)</li>
-              <li><code className="text-green-400">XPT2046_Touchscreen</code> by Paul Stoffregen ← <strong className="text-green-400">НОВАЯ!</strong></li>
+              <li><code className="text-green-400">XPT2046_Touchscreen</code> by Paul Stoffregen</li>
+              <li><code className="text-blue-400">ESP32-a2dp</code> by pschatzmann ← <strong className="text-blue-400">НОВАЯ для Bluetooth!</strong></li>
               <li><code className="text-yellow-400">ESP32-audioI2S</code> by schreibfaul1 <strong className="text-red-400">(v3.0.8!)</strong></li>
               <li><code className="text-yellow-400">SD</code> (встроена)</li>
               <li><code className="text-yellow-400">SPI</code> (встроена)</li>
@@ -270,20 +271,20 @@ function SketchTab() {
       </div>
 
       <div className="bg-green-900/20 border border-green-700/50 rounded-xl p-4">
-        <h4 className="text-green-400 font-bold mb-2">✅ Что исправлено в новой версии:</h4>
+        <h4 className="text-green-400 font-bold mb-2">✨ Новые возможности v.4:</h4>
         <ul className="text-gray-300 text-sm space-y-1">
-          <li>• <strong>Добавлена кнопка VOL-</strong> на экране (теперь 4 кнопки)</li>
-          <li>• <strong>WiFi настройки вынесены</strong> в начало кода</li>
-          <li>• <strong>Убрана кнопка MODE</strong> - используется весь экран</li>
-          <li>• <strong>Исправлен тачскрин</strong> - правильные настройки из Random Nerd Tutorials</li>
-          <li>• <strong>Весь дисплей активен</strong> - нет пустого места внизу</li>
+          <li>• <strong>WiFi Scanner</strong> - сканирование сетей и быстрое подключение</li>
+          <li>• <strong>Bluetooth A2DP</strong> - подключение Bluetooth колонок и наушников</li>
+          <li>• <strong>4 сенсорные кнопки</strong> - PREV, NEXT, VOL-, VOL+</li>
+          <li>• <strong>WiFi настройки в коде</strong> - удобно для первоначальной настройки</li>
+          <li>• <strong>Весь экран активен</strong> - нет пустого места</li>
         </ul>
         <a
-          href="/ALL_FIXES_GUIDE.md"
-          download="ALL_FIXES_GUIDE.md"
+          href="/NetRadio_v4_Guide.md"
+          download="NetRadio_v4_Guide.md"
           className="inline-block mt-3 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors text-sm font-bold"
         >
-          📥 Скачать полное руководство по исправлениям
+          📥 Скачать полное руководство v.4
         </a>
       </div>
 
@@ -525,7 +526,7 @@ function BuildTab() {
         <StepCard
           num={5}
           title="Загрузите прошивку"
-          content="Откройте NetRadio_v3_CYD.ino в Arduino IDE.\nВыберите плату: ESP32 Dev Module.\nPartition Scheme: Default 4MB with spiffs.\nUpload Speed: 921600 (или 115200 если проблемы).\nНажмите Upload."
+          content="Откройте NetRadio_v4_CYD.ino в Arduino IDE.\nВыберите плату: ESP32 Dev Module.\nPartition Scheme: Default 4MB with spiffs.\nUpload Speed: 921600 (или 115200 если проблемы).\nНажмите Upload."
         />
         <StepCard
           num={6}
