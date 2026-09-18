@@ -92,19 +92,20 @@ function OverviewTab() {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <FeatureCard icon="🖥️" title="2.8&quot; TFT" desc="ILI9341, 320x240, RGB. Встроен в плату!" />
           <FeatureCard icon="💾" title="SD Card" desc="Хранение до 50 станций. Встроенный слот." />
-          <FeatureCard icon="🎨" title="RGB LED" desc="Индикация статуса работы" />
+          <FeatureCard icon="👆" title="Touch" desc="Сенсорные кнопки на экране" />
           <FeatureCard icon="🔊" title="Audio" desc="Встроенный усилитель (GPIO 26)" />
         </div>
       </div>
 
       <div className="bg-gray-900 rounded-xl p-6 border border-gray-800">
-        <h3 className="text-lg font-bold text-yellow-400 mb-4">🎯 Преимущества ESP32-2432S028R</h3>
+        <h3 className="text-lg font-bold text-yellow-400 mb-4">🎯 Преимущества ESP32-2432S028</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="bg-gray-800/50 rounded-lg p-4">
             <h4 className="text-white font-bold mb-2">✅ Всё в одном</h4>
             <ul className="text-gray-400 text-sm space-y-1">
               <li>• Встроенный TFT дисплей</li>
               <li>• Встроенный слот SD карты</li>
+              <li>• <strong className="text-green-400">Встроенный тачскрин XPT2046</strong></li>
               <li>• Встроенный усилитель звука</li>
               <li>• RGB LED для индикации</li>
               <li>• Датчик освещённости (LDR)</li>
@@ -127,7 +128,7 @@ function OverviewTab() {
 
       <div className="bg-gray-900 rounded-xl p-6 border border-gray-800">
         <h3 className="text-lg font-bold text-yellow-400 mb-4">🆕 Новые возможности v.3</h3>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <div className="bg-green-900/20 border border-green-700/50 rounded-lg p-4">
             <h4 className="text-green-400 font-bold mb-2">💾 SD Card Storage</h4>
             <p className="text-gray-400 text-sm">До 50 станций на SD карте. Легко добавлять/удалять.</p>
@@ -137,7 +138,11 @@ function OverviewTab() {
             <p className="text-gray-400 text-sm">2.8" TFT 320x240. Красивый интерфейс с цветами.</p>
           </div>
           <div className="bg-purple-900/20 border border-purple-700/50 rounded-lg p-4">
-            <h4 className="text-purple-400 font-bold mb-2">🚦 RGB LED</h4>
+            <h4 className="text-purple-400 font-bold mb-2">👆 Тачскрин</h4>
+            <p className="text-gray-400 text-sm">Сенсорные кнопки на экране для управления.</p>
+          </div>
+          <div className="bg-orange-900/20 border border-orange-700/50 rounded-lg p-4">
+            <h4 className="text-orange-400 font-bold mb-2">🚦 RGB LED</h4>
             <p className="text-gray-400 text-sm">Индикация статуса: синий (старт), зелёный (работа).</p>
           </div>
         </div>
@@ -159,7 +164,7 @@ function OverviewTab() {
               <tr className="border-b border-gray-800"><td className="py-2 px-3">Дисплей</td><td className="py-2 px-3">TFT 2.4"</td><td className="py-2 px-3">LCD 1602</td><td className="py-2 px-3">TFT 2.8"</td></tr>
               <tr className="border-b border-gray-800"><td className="py-2 px-3">Разрешение</td><td className="py-2 px-3">320x240</td><td className="py-2 px-3">16x2</td><td className="py-2 px-3">320x240</td></tr>
               <tr className="border-b border-gray-800"><td className="py-2 px-3">SD карта</td><td className="py-2 px-3">❌ Нет</td><td className="py-2 px-3">❌ Нет</td><td className="py-2 px-3 text-green-400">✅ Да (50 станций)</td></tr>
-              <tr className="border-b border-gray-800"><td className="py-2 px-3">Тачскрин</td><td className="py-2 px-3">❌ Нет</td><td className="py-2 px-3">❌ Нет</td><td className="py-2 px-3 text-green-400">✅ Да</td></tr>
+              <tr className="border-b border-gray-800"><td className="py-2 px-3">Тачскрин</td><td className="py-2 px-3">❌ Нет</td><td className="py-2 px-3">❌ Нет</td><td className="py-2 px-3 text-green-400">✅ XPT2046</td></tr>
               <tr className="border-b border-gray-800"><td className="py-2 px-3">Кнопки</td><td className="py-2 px-3">4 внешние</td><td className="py-2 px-3">5 внешних</td><td className="py-2 px-3">3 внешние + BOOT</td></tr>
               <tr className="border-b border-gray-800"><td className="py-2 px-3">Цена</td><td className="py-2 px-3">~$25</td><td className="py-2 px-3">~$13</td><td className="py-2 px-3 text-green-400">~$15</td></tr>
               <tr><td className="py-2 px-3">Сложность</td><td className="py-2 px-3">Средняя</td><td className="py-2 px-3">Простая</td><td className="py-2 px-3 text-green-400">Очень простая</td></tr>

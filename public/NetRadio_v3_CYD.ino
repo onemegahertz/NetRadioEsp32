@@ -122,6 +122,8 @@ void updateWeather();
 void setupWebServer();
 void initSDCard();
 void setLEDColor(uint8_t r, uint8_t g, uint8_t b);
+void initTouch();
+void checkTouch();
 
 // ==================== SETUP ====================
 void setup() {
@@ -135,6 +137,9 @@ void setup() {
   // NOTE: Rotation is set in User_Setup.h via #define TFT_setRotation 1
   tft.init();
   tft.fillScreen(TFT_BLACK);
+  
+  // Initialize touch screen
+  initTouch();
   
   // Check if display is working correctly
   Serial.println("[OK] TFT initialized");
@@ -386,6 +391,50 @@ void updateTime() {
   }
 }
 
+// ==================== TOUCH ====================
+// Калибровка тачскрина из проекта CYD-ESP32Marauder
+uint16_t touchCalData[5] = { 350, 3465, 188, 3431, 2 };
+
+void initTouch() {
+  tft.setTouch(touchCalData);
+  Serial.println("[OK] Touch initialized");
+}
+
+void checkTouch() {
+  uint16_t x, y;
+  if (tft.getTouch(&x, &y)) {
+    // Debounce
+    delay(50);
+    
+    // Определяем какая кнопка нажата
+    // Кнопка PREV: x=20-80, y=160-200
+    if (x >= 20 && x <= 80 && y >= 160 && y <= 200) {
+      prevStation();
+      Serial.println("[TOUCH] Prev station");
+    }
+    // Кнопка NEXT: x=100-160, y=160-200
+    else if (x >= 100 && x <= 160 && y >= 160 && y <= 200) {
+      nextStation();
+      Serial.println("[TOUCH] Next station");
+    }
+    // Кнопка VOL+: x=180-240, y=160-200
+    else if (x >= 180 && x <= 240 && y >= 160 && y <= 200) {
+      volumeUp();
+      Serial.println("[TOUCH] Volume +");
+    }
+    // Кнопка MODE: x=260-320, y=160-200
+    else if (x >= 260 && x <= 320 && y >= 160 && y <= 200) {
+      changeMode();
+      Serial.println("[TOUCH] Mode change");
+    }
+    
+    // Ждём отпускания пальца
+    while (tft.getTouch(&x, &y)) {
+      delay(10);
+    }
+  }
+}
+
 // ==================== DISPLAY ====================
 void updateDisplay() {
   tft.fillScreen(TFT_BLACK);
@@ -447,28 +496,48 @@ void updateDisplay() {
       break;
   }
   
+  // Touch buttons
+  // PREV button
+  tft.fillRoundRect(20, 160, 60, 40, 5, TFT_BLUE);
+  tft.setTextColor(TFT_WHITE, TFT_BLUE);
+  tft.setTextSize(2);
+  tft.setCursor(30, 175);
+  tft.print("PREV");
+  
+  // NEXT button
+  tft.fillRoundRect(100, 160, 60, 40, 5, TFT_GREEN);
+  tft.setTextColor(TFT_WHITE, TFT_GREEN);
+  tft.setCursor(110, 175);
+  tft.print("NEXT");
+  
+  // VOL+ button
+  tft.fillRoundRect(180, 160, 60, 40, 5, TFT_ORANGE);
+  tft.setTextColor(TFT_WHITE, TFT_ORANGE);
+  tft.setCursor(190, 175);
+  tft.print("VOL+");
+  
+  // MODE button
+  tft.fillRoundRect(260, 160, 60, 40, 5, TFT_PURPLE);
+  tft.setTextColor(TFT_WHITE, TFT_PURPLE);
+  tft.setCursor(270, 175);
+  tft.print("MODE");
+  
   // Status
   tft.setTextSize(1);
-  tft.setCursor(10, 180);
+  tft.setCursor(10, 210);
   tft.setTextColor(TFT_DARKGREY, TFT_BLACK);
   tft.print("WiFi: ");
   tft.setTextColor(wifiConnected ? TFT_GREEN : TFT_RED, TFT_BLACK);
   tft.print(wifiConnected ? wifiSSID : "AP Mode");
   
-  tft.setCursor(10, 200);
+  tft.setCursor(10, 225);
   tft.setTextColor(TFT_DARKGREY, TFT_BLACK);
   tft.print("SD Card: ");
   tft.setTextColor(sdCardDetected ? TFT_GREEN : TFT_RED, TFT_BLACK);
   tft.print(sdCardDetected ? "OK" : "NOT FOUND");
   
-  // Mode indicator
-  tft.setCursor(10, 220);
-  tft.setTextColor(TFT_DARKGREY, TFT_BLACK);
-  const char* modeNames[] = {"Volume", "Temp", "Date", "WiFi"};
-  tft.printf("Mode: %s (press BOOT to change)", modeNames[displayMode]);
-  
   // Web interface hint
-  tft.setCursor(10, 235);
+  tft.setCursor(10, 240);
   tft.setTextColor(TFT_CYAN, TFT_BLACK);
   tft.printf("Web: http://%s", wifiIP);
 }
@@ -579,6 +648,7 @@ void loop() {
   server.handleClient();
   audio.loop();
   checkButtons();
+  checkTouch();  // Check touch screen
   unsigned long now = millis();
   if (now - lastScr > 500) { lastScr = now; updateDisplay(); }
   if (now - lastTime > 1000) { lastTime = now; updateTime(); }

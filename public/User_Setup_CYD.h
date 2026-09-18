@@ -1,10 +1,14 @@
 // ============================================
 // User_Setup.h для ESP32-2432S028 (CYD)
-// Дисплей: TPM408-2.8 (ILI9341)
+// Настройки из проекта CYD-ESP32Marauder
 // ============================================
 
-// Драйвер дисплея
-#define ILI9341_DRIVER
+// Драйвер дисплея - ВАЖНО: используйте ILI9341_2_DRIVER!
+// #define ILI9341_DRIVER
+#define ILI9341_2_DRIVER     // Альтернативный драйвер для CYD
+
+// Инверсия цветов (обязательно для CYD!)
+#define TFT_INVERSION_ON
 
 // Размер дисплея
 #define TFT_WIDTH  240
@@ -21,6 +25,17 @@
 // Подсветка дисплея
 #define TFT_BL   21
 #define TFT_BACKLIGHT_ON HIGH
+
+// ============================================
+// ТАЧСКРИН XPT2046 (SoftSPI)
+// ============================================
+#define TOUCH_CS 33        // Chip select тачскрина
+
+// SoftSPI для тачскрина (отдельная шина)
+#define SOFTSPI
+#define TOUCH_MOSI 32      // Отдельный MOSI для тачскрина
+#define TOUCH_MISO 39      // Отдельный MISO для тачскрина
+#define TOUCH_CLK 25       // Отдельный CLK для тачскрина
 
 // ОРИЕНТАЦИЯ ДИСПЛЕЯ
 // 0 = Portrait (вертикально, 240x320)
@@ -40,9 +55,10 @@
 
 #define SMOOTH_FONT
 
-// SPI частота
+// SPI частоты
 #define SPI_FREQUENCY  40000000
-#define SPI_READ_FREQUENCY  20000000
+#define SPI_READ_FREQUENCY  16000000
+#define SPI_TOUCH_FREQUENCY  2500000
 
 // ============================================
 // ВАЖНО: Закомментируйте все другие драйверы!
@@ -51,7 +67,7 @@
 // #define ST7735_DRIVER
 // #define ST7789_DRIVER
 // #define ILI9163_DRIVER
-// #define ILI9341_2_DRIVER
+// #define ILI9341_DRIVER  (используйте ILI9341_2_DRIVER!)
 // #define S6D02A1_DRIVER
 // и все другие драйверы
 
@@ -66,6 +82,7 @@
 // 3. Перезапустите Arduino IDE
 //
 // 4. Если дисплей показывает серую полосу:
+//    - Убедитесь что используется ILI9341_2_DRIVER (не ILI9341_DRIVER!)
+//    - Проверьте что TFT_INVERSION_ON включен
 //    - Попробуйте изменить TFT_setRotation на 0, 2 или 3
-//    - Если не помогает, замените ILI9341_DRIVER на ST7789_DRIVER
 // ============================================
