@@ -286,6 +286,13 @@ function SketchTab() {
         >
           📥 Скачать полное руководство v.4
         </a>
+        <a
+          href="/NetRadio_v4_FIXES.md"
+          download="NetRadio_v4_FIXES.md"
+          className="inline-block mt-3 ml-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors text-sm font-bold"
+        >
+          🔧 Скачать руководство по исправлениям
+        </a>
       </div>
 
       <div className="bg-orange-900/20 border border-orange-700/50 rounded-xl p-4">

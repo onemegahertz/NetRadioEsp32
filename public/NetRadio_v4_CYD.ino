@@ -331,14 +331,7 @@ void setup() {
 void initBluetooth() {
   Serial.println("[BT] Initializing Bluetooth A2DP...");
   
-  i2s_pin_config_t pin_config = {
-    .bck_io_num = I2S_BCLK,
-    .ws_io_num = I2S_LRC,
-    .data_out_num = I2S_DOUT,
-    .data_in_num = I2S_PIN_NO_CHANGE
-  };
-  
-  a2dp_sink.set_pin_config(pin_config);
+  // Новый API для ESP32-A2DP
   a2dp_sink.set_volume(64);  // 0-128
   a2dp_sink.start("NetRadio Speaker");
   
@@ -587,7 +580,7 @@ void drawMainScreen() {
       tft.setTextColor(TFT_YELLOW, TFT_BLACK);
       tft.printf("Volume: %d/21", currentVolume);
       tft.fillRect(10, 130, 300, 20, TFT_DARKGREY);
-      tft.fillRect(10, 130, map(currentVolume, 0, 21, 0, 300), 20, TFT_GREEN);
+      tft.fillRect(10, 130, ::map(currentVolume, 0, 21, 0, 300), 20, TFT_GREEN);
       tft.drawRect(10, 130, 300, 20, TFT_WHITE);
       break;
       
@@ -739,8 +732,8 @@ void checkTouch() {
   if (!touchscreen.tirqTouched() || !touchscreen.touched()) return;
   
   TS_Point p = touchscreen.getPoint();
-  int x = map(p.x, 200, 3700, 1, SCREEN_WIDTH);
-  int y = map(p.y, 240, 3800, 1, SCREEN_HEIGHT);
+  int x = ::map(p.x, 200, 3700, 1, SCREEN_WIDTH);
+  int y = ::map(p.y, 240, 3800, 1, SCREEN_HEIGHT);
   
   delay(50);  // Debounce
   
