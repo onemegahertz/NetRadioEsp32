@@ -48,16 +48,16 @@
 // x = map(p.x, 200, 3700, 1, SCREEN_WIDTH);
 // y = map(p.y, 240, 3800, 1, SCREEN_HEIGHT);
 
-// Шрифты
-#define LOAD_GLCD
-#define LOAD_FONT2
-#define LOAD_FONT4
-#define LOAD_FONT6
-#define LOAD_FONT7
-#define LOAD_FONT8
-#define LOAD_GFXFF
+// Шрифты (ОПТИМИЗИРОВАНО для экономии памяти!)
+#define LOAD_GLCD   // Базовый шрифт - оставить
+#define LOAD_FONT2  // Маленький шрифт - оставить
+#define LOAD_FONT4  // Средний шрифт - оставить
+// #define LOAD_FONT6  // ЗАКОММЕНТИРОВАНО для экономии ~15KB
+// #define LOAD_FONT7  // ЗАКОММЕНТИРОВАНО для экономии ~20KB
+// #define LOAD_FONT8  // ЗАКОММЕНТИРОВАНО для экономия ~25KB
+// #define LOAD_GFXFF  // ЗАКОММЕНТИРОВАНО для экономии ~30KB
 
-#define SMOOTH_FONT
+// #define SMOOTH_FONT  // ЗАКОММЕНТИРОВАНО для экономии ~10KB
 
 // SPI частоты
 #define SPI_FREQUENCY  40000000
