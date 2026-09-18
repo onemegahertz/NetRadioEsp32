@@ -22,14 +22,14 @@ function App() {
               <h1 className="text-3xl font-bold text-yellow-400 flex items-center gap-3">
                 <span className="text-4xl">📻</span> NetRadio v.4
               </h1>
-              <p className="text-gray-400 mt-1">ESP32-2432S028 (CYD) • 2.8" TFT • WiFi Scanner • Bluetooth</p>
+              <p className="text-gray-400 mt-1">ESP32-2432S028 (CYD) • 2.8" TFT • WiFi Scanner • Bluetooth (опционально)</p>
             </div>
             <div className="flex items-center gap-2 flex-wrap">
               <span className="px-3 py-1 bg-green-900/50 text-green-400 rounded-full text-xs border border-green-700">
                 ✓ CYD Ready
               </span>
               <span className="px-3 py-1 bg-blue-900/50 text-blue-400 rounded-full text-xs border border-blue-700">
-                v4.0.0
+                v4.1.0
               </span>
               <span className="px-3 py-1 bg-purple-900/50 text-purple-400 rounded-full text-xs border border-purple-700">
                 WiFi + Bluetooth
@@ -70,7 +70,7 @@ function App() {
 
       <footer className="bg-gray-900 border-t border-gray-800 py-6 mt-12">
         <div className="max-w-7xl mx-auto px-4 text-center text-gray-500 text-sm">
-          <p>NetRadio v.4 • ESP32-2432S028 (CYD) Internet Radio • WiFi Scanner • Bluetooth A2DP</p>
+          <p>NetRadio v.4.1 • ESP32-2432S028 (CYD) Internet Radio • WiFi Scanner • Bluetooth (опционально)</p>
           <p className="mt-1">2.8" TFT ILI9341 • SD Card • Based on yoRadio</p>
         </div>
       </footer>
@@ -82,18 +82,35 @@ function OverviewTab() {
   return (
     <div className="space-y-8">
       <div className="bg-gradient-to-br from-yellow-900/50 to-orange-900/50 rounded-2xl p-8 border border-yellow-500/20">
-        <h2 className="text-2xl font-bold text-white mb-4">📻 NetRadio v.3 - ESP32-2432S028 (CYD)</h2>
+        <h2 className="text-2xl font-bold text-white mb-4">📻 NetRadio v.4.1 - ESP32-2432S028 (CYD)</h2>
         <p className="text-gray-300 leading-relaxed mb-6">
           Полноценное интернет-радио на базе платы <strong>ESP32-2432S028</strong> (Cheap Yellow Display).
-          Встроенный TFT дисплей 2.8", слот SD карты, усилитель звука.
-          Хранение станций на SD карте (до 50 станций).
+          Встроенный TFT дисплей 2.8", слот SD карты, WiFi сканер на экране.
+          <strong className="text-yellow-400"> Опциональный Bluetooth</strong> - включается одной строкой в коде!
+          Хранение станций на SD карте (до 30 станций).
         </p>
         
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <FeatureCard icon="🖥️" title="2.8&quot; TFT" desc="ILI9341, 320x240, RGB. Встроен в плату!" />
-          <FeatureCard icon="💾" title="SD Card" desc="Хранение до 50 станций. Встроенный слот." />
+          <FeatureCard icon="💾" title="SD Card" desc="Хранение до 30 станций. Встроенный слот." />
           <FeatureCard icon="👆" title="Touch" desc="Сенсорные кнопки на экране" />
-          <FeatureCard icon="🔊" title="Audio" desc="Встроенный усилитель (GPIO 26)" />
+          <FeatureCard icon="📡" title="WiFi Scanner" desc="Сканирование сетей на экране" />
+        </div>
+        
+        <div className="mt-4 bg-yellow-900/20 border border-yellow-700/50 rounded-lg p-4">
+          <h4 className="text-yellow-400 font-bold mb-2">🔊 Bluetooth (опционально!)</h4>
+          <p className="text-gray-300 text-sm mb-2">
+            Bluetooth можно <strong>включить/выключить</strong> одной строкой в коде!
+          </p>
+          <div className="bg-gray-900 rounded p-2 font-mono text-xs text-gray-300">
+            <p className="text-green-400">// Для включения Bluetooth (нужна плата с 4MB Flash):</p>
+            <p>#define USE_BLUETOOTH</p>
+            <p className="text-gray-500 mt-2">// Для выключения (для плат с 2MB Flash):</p>
+            <p className="text-gray-500">// #define USE_BLUETOOTH</p>
+          </div>
+          <p className="text-gray-400 text-xs mt-2">
+            Когда Bluetooth включен - на экране появляется кнопка <strong>[BT]</strong> для включения/выключения Bluetooth во время работы!
+          </p>
         </div>
       </div>
 
@@ -127,23 +144,23 @@ function OverviewTab() {
       </div>
 
       <div className="bg-gray-900 rounded-xl p-6 border border-gray-800">
-        <h3 className="text-lg font-bold text-yellow-400 mb-4">🆕 Новые возможности v.3</h3>
+        <h3 className="text-lg font-bold text-yellow-400 mb-4">🆕 Новые возможности v.4.1</h3>
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <div className="bg-green-900/20 border border-green-700/50 rounded-lg p-4">
             <h4 className="text-green-400 font-bold mb-2">💾 SD Card Storage</h4>
-            <p className="text-gray-400 text-sm">До 50 станций на SD карте. Легко добавлять/удалять.</p>
+            <p className="text-gray-400 text-sm">До 30 станций на SD карте. Легко добавлять/удалять.</p>
           </div>
           <div className="bg-blue-900/20 border border-blue-700/50 rounded-lg p-4">
-            <h4 className="text-blue-400 font-bold mb-2">🎨 Цветной дисплей</h4>
-            <p className="text-gray-400 text-sm">2.8" TFT 320x240. Красивый интерфейс с цветами.</p>
+            <h4 className="text-blue-400 font-bold mb-2">📡 WiFi Scanner</h4>
+            <p className="text-gray-400 text-sm">Сканирование сетей прямо на экране TFT!</p>
           </div>
           <div className="bg-purple-900/20 border border-purple-700/50 rounded-lg p-4">
-            <h4 className="text-purple-400 font-bold mb-2">👆 Тачскрин</h4>
-            <p className="text-gray-400 text-sm">Сенсорные кнопки на экране для управления.</p>
+            <h4 className="text-purple-400 font-bold mb-2">⌨️ Keyboard</h4>
+            <p className="text-gray-400 text-sm">Экранная клавиатура для ввода паролей WiFi.</p>
           </div>
-          <div className="bg-orange-900/20 border border-orange-700/50 rounded-lg p-4">
-            <h4 className="text-orange-400 font-bold mb-2">🚦 RGB LED</h4>
-            <p className="text-gray-400 text-sm">Индикация статуса: синий (старт), зелёный (работа).</p>
+          <div className="bg-yellow-900/20 border border-yellow-700/50 rounded-lg p-4">
+            <h4 className="text-yellow-400 font-bold mb-2">🔊 Bluetooth</h4>
+            <p className="text-gray-400 text-sm">Опционально! Вкл/выкл одной строкой в коде.</p>
           </div>
         </div>
       </div>
@@ -228,6 +245,10 @@ function SketchTab() {
               <li><code className="text-yellow-400">WebServer</code> (встроена)</li>
               <li><code className="text-yellow-400">Preferences</code> (встроена)</li>
             </ul>
+            <h4 className="text-white font-bold mb-2 mt-4">Опциональные (для Bluetooth):</h4>
+            <ul className="text-gray-400 text-sm space-y-2">
+              <li><code className="text-blue-400">ESP32-A2DP</code> by pschatzmann <span className="text-gray-500">(только если #define USE_BLUETOOTH)</span></li>
+            </ul>
           </div>
           <div className="bg-gray-800/50 rounded-lg p-4">
             <h4 className="text-white font-bold mb-2">Настройка TFT_eSPI:</h4>
@@ -257,15 +278,16 @@ function SketchTab() {
       <div className="bg-yellow-900/20 border border-yellow-700/50 rounded-xl p-4">
         <h4 className="text-yellow-400 font-bold mb-2">💡 Особенности кода:</h4>
         <ul className="text-gray-300 text-sm space-y-1">
-          <li>• <strong>SD карта</strong> для хранения станций (до 50 станций)</li>
+          <li>• <strong>SD карта</strong> для хранения станций (до 30 станций)</li>
           <li>• <strong>Встроенный TFT</strong> 2.8" ILI9341 (320x240)</li>
           <li>• <strong>Тачскрин XPT2046</strong> с 4 сенсорными кнопками</li>
-          <li>• <strong>RGB LED</strong> для индикации статуса</li>
-          <li>• <strong>Встроенный усилитель</strong> звука</li>
+          <li>• <strong>WiFi Scanner</strong> прямо на экране TFT</li>
+          <li>• <strong>Экранная клавиатура</strong> для ввода паролей</li>
+          <li>• <strong>Опциональный Bluetooth</strong> - включается одной строкой!</li>
+          <li>• <strong>Кнопка вкл/выкл Bluetooth</strong> на экране</li>
           <li>• <strong>4 режима дисплея</strong>: громкость, температура, дата, WiFi</li>
           <li>• <strong>Погода Москвы</strong> через OpenWeatherMap</li>
           <li>• <strong>Веб-интерфейс</strong> для управления</li>
-          <li>• <strong>WiFi настройки</strong> в начале кода для удобства</li>
         </ul>
       </div>
 
@@ -532,7 +554,7 @@ function BuildTab() {
         <StepCard
           num={5}
           title="Загрузите прошивку"
-          content="Откройте NetRadio_v4_CYD.ino в Arduino IDE.\nВыберите плату: ESP32 Dev Module.\nPartition Scheme: Default 4MB with spiffs.\nUpload Speed: 921600 (или 115200 если проблемы).\nНажмите Upload."
+          content="Откройте NetRadio_v4_1_CYD.ino в Arduino IDE.\n\nВАЖНО: Для включения Bluetooth раскомментируйте строку:\n#define USE_BLUETOOTH\n(только для плат с 4MB Flash!)\n\nВыберите плату: ESP32 Dev Module.\nPartition Scheme: Default 4MB with spiffs.\nUpload Speed: 921600 (или 115200 если проблемы).\nНажмите Upload."
         />
         <StepCard
           num={6}

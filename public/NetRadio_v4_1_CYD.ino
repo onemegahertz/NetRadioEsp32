@@ -1,8 +1,14 @@
 /*
- * NetRadio v.4.1 - OPTIMIZED for 2MB Flash
+ * NetRadio v.4.1 - OPTIMIZED for ESP32-2432S028
  * WiFi Scanner on TFT Screen
- * NO Bluetooth (to save memory)
+ * 
+ * ВАЖНО: Bluetooth опционален!
+ * Если у вас ESP32 с 4MB Flash - раскомментируйте строку ниже
+ * Если у вас ESP32 с 2MB Flash - оставьте закомментированной
  */
+
+// Раскомментируйте для включения Bluetooth (требует 4MB Flash!)
+// #define USE_BLUETOOTH
 
 // WiFi CONFIGURATION
 #define WIFI_SSID     ""
@@ -18,6 +24,10 @@
 #include <SD.h>
 #include "Audio.h"
 #include <time.h>
+
+#ifdef USE_BLUETOOTH
+#include <BluetoothA2DPSink.h>
+#endif
 
 // Pins
 #define TFT_MOSI  13
@@ -71,6 +81,12 @@ XPT2046_Touchscreen touchscreen(XPT2046_CS, XPT2046_IRQ);
 Audio audio;
 WebServer server(80);
 Preferences prefs;
+
+#ifdef USE_BLUETOOTH
+BluetoothA2DPSink a2dp_sink;
+bool bluetoothEnabled = false;
+bool bluetoothConnected = false;
+#endif
 
 struct Station {
   char name[MAX_NAME_LEN];
@@ -129,11 +145,21 @@ void drawWiFiMenu();
 void drawKeyboard();
 void drawMainScreen();
 
+#ifdef USE_BLUETOOTH
+void initBluetooth();
+void toggleBluetooth();
+#endif
+
 void setup() {
   Serial.begin(115200);
   delay(500);
   
   Serial.println("\n=== NetRadio v.4.1 ===");
+#ifdef USE_BLUETOOTH
+  Serial.println("Bluetooth: ENABLED");
+#else
+  Serial.println("Bluetooth: DISABLED");
+#endif
   
   tft.init();
   tft.setRotation(1);
@@ -164,6 +190,10 @@ void setup() {
   
   audio.setPinout(I2S_BCLK, I2S_LRC, I2S_DOUT);
   audio.setVolume(currentVolume);
+  
+#ifdef USE_BLUETOOTH
+  initBluetooth();
+#endif
   
   tft.fillScreen(TFT_BLACK);
   tft.setCursor(10, 10);
@@ -241,6 +271,30 @@ void setup() {
   if (wifiConnected) Serial.printf("Web: http://%s\n", wifiIP);
 }
 
+#ifdef USE_BLUETOOTH
+void initBluetooth() {
+  Serial.println("[BT] Initializing Bluetooth A2DP...");
+  a2dp_sink.set_volume(64);
+  a2dp_sink.start("NetRadio Speaker");
+  bluetoothEnabled = true;
+  Serial.println("[OK] Bluetooth A2DP");
+}
+
+void toggleBluetooth() {
+  if (bluetoothEnabled) {
+    a2dp_sink.stop();
+    bluetoothEnabled = false;
+    bluetoothConnected = false;
+    Serial.println("[BT] Bluetooth OFF");
+  } else {
+    a2dp_sink.start("NetRadio Speaker");
+    bluetoothEnabled = true;
+    Serial.println("[BT] Bluetooth ON");
+  }
+  updateDisplay();
+}
+#endif
+
 void initSDCard() {
   SPI.begin(SD_SCLK, SD_MISO, SD_MOSI, SD_CS);
   sdCardDetected = SD.begin(SD_CS);
@@ -307,8 +361,22 @@ void playStation(int idx) {
 
 void nextStation() { playStation((currentStation+1) % stationCount); }
 void prevStation() { playStation((currentStation-1+stationCount) % stationCount); }
-void volumeUp() { currentVolume = min(21, currentVolume+VOL_STEP); audio.setVolume(currentVolume); updateDisplay(); }
-void volumeDown() { currentVolume = max(0, currentVolume-VOL_STEP); audio.setVolume(currentVolume); updateDisplay(); }
+void volumeUp() { 
+  currentVolume = min(21, currentVolume+VOL_STEP); 
+  audio.setVolume(currentVolume);
+#ifdef USE_BLUETOOTH
+  if (bluetoothEnabled) a2dp_sink.set_volume(currentVolume * 6);
+#endif
+  updateDisplay(); 
+}
+void volumeDown() { 
+  currentVolume = max(0, currentVolume-VOL_STEP); 
+  audio.setVolume(currentVolume);
+#ifdef USE_BLUETOOTH
+  if (bluetoothEnabled) a2dp_sink.set_volume(currentVolume * 6);
+#endif
+  updateDisplay(); 
+}
 
 void scanWiFiNetworks() {
   tft.fillScreen(TFT_BLACK);
@@ -531,6 +599,22 @@ void drawMainScreen() {
   tft.print("SD: ");
   tft.setTextColor(sdCardDetected ? TFT_GREEN : TFT_RED, TFT_BLACK);
   tft.print(sdCardDetected ? "OK" : "NOT FOUND");
+  
+#ifdef USE_BLUETOOTH
+  tft.setCursor(200, 170);
+  tft.setTextColor(TFT_DARKGREY, TFT_BLACK);
+  tft.print("BT: ");
+  tft.setTextColor(bluetoothEnabled ? TFT_GREEN : TFT_DARKGREY, TFT_BLACK);
+  tft.print(bluetoothEnabled ? "ON" : "OFF");
+  
+  if (bluetoothEnabled) {
+    tft.fillRoundRect(250, 180, 60, 20, 3, bluetoothConnected ? TFT_GREEN : TFT_DARKGREY);
+    tft.setTextColor(TFT_WHITE, bluetoothConnected ? TFT_GREEN : TFT_DARKGREY);
+    tft.setTextSize(1);
+    tft.setCursor(255, 185);
+    tft.print(bluetoothConnected ? "LINK" : "BT");
+  }
+#endif
 }
 
 void connectToWiFi(String ssid, String password) {
@@ -616,6 +700,11 @@ void checkTouch() {
       } else if (x >= 220 && x <= 280 && y >= 200 && y <= 230) {
         volumeUp();
       }
+#ifdef USE_BLUETOOTH
+      else if (x >= 250 && x <= 310 && y >= 180 && y <= 200) {
+        toggleBluetooth();
+      }
+#endif
       break;
       
     case MENU_WIFI_SCAN:
