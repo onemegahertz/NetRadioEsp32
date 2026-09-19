@@ -19,20 +19,20 @@ function App() {
         <div className="max-w-7xl mx-auto px-4 py-6">
           <div className="flex items-center justify-between flex-wrap gap-4">
             <div>
-              <h1 className="text-3xl font-bold text-yellow-400 flex items-center gap-3">
-                <span className="text-4xl">📻</span> NetRadio v.4
+              <h1 className="text-3xl font-bold text-green-400 flex items-center gap-3">
+                <span className="text-4xl">📻</span> NetRadio v.5.3
               </h1>
-              <p className="text-gray-400 mt-1">ESP32-2432S028 (CYD) • 2.8" TFT • WiFi Scanner • Bluetooth (опционально)</p>
+              <p className="text-gray-400 mt-1">ESP32-2432S028 (CYD) • 2.8" TFT • Лёгкий Bluetooth через ESP-IDF</p>
             </div>
             <div className="flex items-center gap-2 flex-wrap">
               <span className="px-3 py-1 bg-green-900/50 text-green-400 rounded-full text-xs border border-green-700">
                 ✓ CYD Ready
               </span>
               <span className="px-3 py-1 bg-blue-900/50 text-blue-400 rounded-full text-xs border border-blue-700">
-                v4.3.0
+                v5.3.0
               </span>
               <span className="px-3 py-1 bg-purple-900/50 text-purple-400 rounded-full text-xs border border-purple-700">
-                WiFi + Bluetooth
+                Light Bluetooth
               </span>
             </div>
           </div>
@@ -70,8 +70,8 @@ function App() {
 
       <footer className="bg-gray-900 border-t border-gray-800 py-6 mt-12">
         <div className="max-w-7xl mx-auto px-4 text-center text-gray-500 text-sm">
-          <p>NetRadio v.4.3 • ESP32-2432S028 (CYD) • WiFi Scanner • Final Optimized Version</p>
-          <p className="mt-1">2.8" TFT ILI9341 • SD Card • Based on yoRadio</p>
+          <p>NetRadio v.5.3 • ESP32-2432S028 (CYD) • Light Bluetooth через ESP-IDF</p>
+          <p className="mt-1">2.8" TFT ILI9341 • ~1.8MB размер • Помещается в 2MB Flash!</p>
         </div>
       </footer>
     </div>
@@ -81,33 +81,48 @@ function App() {
 function OverviewTab() {
   return (
     <div className="space-y-8">
-      <div className="bg-gradient-to-br from-yellow-900/50 to-orange-900/50 rounded-2xl p-8 border border-yellow-500/20">
-        <h2 className="text-2xl font-bold text-white mb-4">📻 NetRadio v.4.3 - ESP32-2432S028 (CYD)</h2>
+      <div className="bg-gradient-to-br from-green-900/50 to-teal-900/50 rounded-2xl p-8 border border-green-500/20">
+        <h2 className="text-2xl font-bold text-white mb-4">📻 NetRadio v.5.3 - ЛЁГКИЙ BLUETOOTH!</h2>
         <p className="text-gray-300 leading-relaxed mb-6">
           Полноценное интернет-радио на базе платы <strong>ESP32-2432S028</strong> (Cheap Yellow Display).
-          Встроенный TFT дисплей 2.8", слот SD карты, WiFi сканер на экране.
-          <strong className="text-green-400"> Финальная оптимизированная версия - гарантированно работает на 2MB Flash!</strong>
+          Встроенный TFT дисплей 2.8", <strong className="text-green-400">Bluetooth через ESP-IDF напрямую</strong> (без библиотеки ESP32-A2DP).
+          <strong className="text-yellow-400"> Экономия ~350KB Flash памяти!</strong>
         </p>
         
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <FeatureCard icon="🖥️" title="2.8&quot; TFT" desc="ILI9341, 320x240, RGB. Встроен в плату!" />
-          <FeatureCard icon="💾" title="SD Card" desc="Хранение до 20 станций. Встроенный слот." />
+          <FeatureCard icon="🔊" title="Light Bluetooth" desc="Через ESP-IDF напрямую. Экономия ~350KB!" />
           <FeatureCard icon="👆" title="Touch" desc="Сенсорные кнопки на экране" />
-          <FeatureCard icon="📡" title="WiFi Scanner" desc="Сканирование сетей на экране" />
+          <FeatureCard icon="🌤️" title="Weather" desc="Погода Москвы + время NTP" />
         </div>
         
         <div className="mt-4 bg-green-900/30 border border-green-500/50 rounded-lg p-4">
-          <h4 className="text-green-400 font-bold mb-2">✨ v4.3 - ФИНАЛЬНАЯ ВЕРСИЯ!</h4>
+          <h4 className="text-green-400 font-bold mb-2">✨ v5.3 - ЛЁГКИЙ BLUETOOTH ЧЕРЕЗ ESP-IDF!</h4>
           <ul className="text-gray-300 text-sm space-y-1">
-            <li>✅ <strong>Гарантированно работает на 2MB Flash!</strong></li>
-            <li>✅ WiFi Scanner на экране TFT</li>
-            <li>✅ Тачскрин с 4 кнопками управления</li>
-            <li>✅ SD карта - до 20 станций</li>
+            <li>✅ <strong>Bluetooth A2DP работает!</strong> (без библиотеки ESP32-A2DP)</li>
+            <li>✅ <strong>Размер: ~1.8MB</strong> (помещается в 2MB Flash!)</li>
+            <li>✅ Экономия ~350KB по сравнению с v5.1</li>
             <li>✅ Погода Москвы через OpenWeatherMap</li>
             <li>✅ Время через NTP синхронизацию</li>
-            <li>✅ Веб-интерфейс для управления</li>
-            <li>✅ Экранная клавиатура для паролей</li>
-            <li>⚠️ Bluetooth убран для экономии памяти (используйте v4.2 для 4MB Flash)</li>
+            <li>✅ WiFi SSID + IP адрес на экране</li>
+            <li>✅ 10 радиостанций по умолчанию</li>
+            <li>✅ 4 кнопки на экране (PREV, NEXT, VOL-, VOL+)</li>
+            <li>✅ Веб-интерфейс с кнопкой вкл/выкл Bluetooth</li>
+            <li>✅ Partition Scheme: Huge APP (3MB No OTA)</li>
+          </ul>
+        </div>
+        
+        <div className="mt-4 bg-blue-900/30 border border-blue-500/50 rounded-lg p-4">
+          <h4 className="text-blue-400 font-bold mb-2">🔧 Как это работает?</h4>
+          <p className="text-gray-300 text-sm mb-2">
+            Вместо библиотеки <code className="bg-gray-800 px-2 py-0.5 rounded">ESP32-A2DP</code> (~400KB) 
+            используем <strong>ESP-IDF напрямую</strong> через встроенные функции:
+          </p>
+          <ul className="text-gray-400 text-xs space-y-1">
+            <li>• <code className="bg-gray-800 px-1 rounded">esp_bt_controller_init()</code> - инициализация Bluetooth</li>
+            <li>• <code className="bg-gray-800 px-1 rounded">esp_a2dp_sink_init()</code> - A2DP Sink</li>
+            <li>• <code className="bg-gray-800 px-1 rounded">esp_bt_controller_mem_release(ESP_BT_MODE_BLE)</code> - отключаем BLE</li>
+            <li>• Только Classic Bluetooth - экономия памяти!</li>
           </ul>
         </div>
       </div>
@@ -197,29 +212,29 @@ function SketchTab() {
       <div className="flex items-center justify-between flex-wrap gap-4">
         <div>
           <h2 className="text-2xl font-bold text-white">💻 Arduino Скетч для ESP32-2432S028</h2>
-          <p className="text-gray-400 mt-1">Полный код прошивки с SD картой и TFT дисплеем</p>
+          <p className="text-gray-400 mt-1">v5.3 - Лёгкий Bluetooth через ESP-IDF напрямую</p>
         </div>
         <div className="flex gap-3 flex-wrap">
           <a
-            href="/NetRadio_v4_3_CYD.ino"
-            download="NetRadio_v4_3_CYD.ino"
+            href="/NetRadio_v5_3_LightBT.ino"
+            download="NetRadio_v5_3_LightBT.ino"
             className="px-6 py-3 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors flex items-center gap-2 font-bold"
           >
-            ⬇️ Скачать скетч v.4.3 (финальный)
+            ⬇️ Скачать скетч v.5.3 (лёгкий BT)
           </a>
           <a
             href="/User_Setup_CYD.h"
             download="User_Setup_CYD.h"
             className="px-6 py-3 bg-orange-600 hover:bg-orange-700 text-white rounded-lg transition-colors flex items-center gap-2 font-bold"
           >
-            ⬇️ Скачать User_Setup.h (оптимизированный)
+            ⬇️ Скачать User_Setup.h
           </a>
           <a
-            href="/OPTIMIZATION_GUIDE.md"
-            download="OPTIMIZATION_GUIDE.md"
+            href="/LIGHTWEIGHT_BLUETOOTH_GUIDE.md"
+            download="LIGHTWEIGHT_BLUETOOTH_GUIDE.md"
             className="px-6 py-3 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-colors flex items-center gap-2 font-bold"
           >
-            📖 Руководство по оптимизации
+            📖 Руководство по лёгкому BT
           </a>
         </div>
       </div>
@@ -250,10 +265,14 @@ function SketchTab() {
               <li><code className="text-yellow-400">WebServer</code> (встроена)</li>
               <li><code className="text-yellow-400">Preferences</code> (встроена)</li>
             </ul>
-            <h4 className="text-white font-bold mb-2 mt-4">Опциональные (для Bluetooth):</h4>
-            <ul className="text-gray-400 text-sm space-y-2">
-              <li><code className="text-blue-400">ESP32-A2DP</code> by pschatzmann <span className="text-gray-500">(только если #define USE_BLUETOOTH)</span></li>
-            </ul>
+            <div className="mt-4 bg-green-900/30 border border-green-700/50 rounded p-3">
+              <h4 className="text-green-400 font-bold mb-2 text-sm">✨ v5.3 - Bluetooth без библиотеки!</h4>
+              <p className="text-gray-300 text-xs">
+                <strong>НЕ нужна библиотека ESP32-A2DP!</strong><br/>
+                Bluetooth работает через ESP-IDF напрямую (встроено в Arduino core).<br/>
+                Экономия ~350KB Flash памяти!
+              </p>
+            </div>
           </div>
           <div className="bg-gray-800/50 rounded-lg p-4">
             <h4 className="text-white font-bold mb-2">Настройка TFT_eSPI:</h4>
