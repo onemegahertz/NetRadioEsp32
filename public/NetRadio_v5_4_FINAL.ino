@@ -83,15 +83,24 @@ void bt_gap_callback(esp_bt_gap_cb_event_t event, esp_bt_gap_cb_param_t *param) 
   }
 }
 
-void bt_a2dp_callback(esp_a2d_cb_event_t event, esp_a2d_cb_param_t *param) {
-  if (event == ESP_A2D_CONNECTION_STATE_EVT) {
-    if (param->conn_stat.state == ESP_A2D_CONNECTION_STATE_CONNECTED) {
-      btConnected = true;
-      Serial.println("[BT] Connected!");
-    } else if (param->conn_stat.state == ESP_A2D_CONNECTION_STATE_DISCONNECTED) {
-      btConnected = false;
-      Serial.println("[BT] Disconnected");
-    }
+void bt_a2d_callback(esp_a2d_cb_event_t event, esp_a2d_cb_param_t *param) {
+  switch (event) {
+    case ESP_A2D_CONNECTION_STATE_EVT:
+      if (param->conn_stat.state == ESP_A2D_CONNECTION_STATE_CONNECTED) {
+        btConnected = true;
+        Serial.println("[BT] Connected!");
+      } else if (param->conn_stat.state == ESP_A2D_CONNECTION_STATE_DISCONNECTED) {
+        btConnected = false;
+        Serial.println("[BT] Disconnected");
+      }
+      break;
+    case ESP_A2D_AUDIO_STATE_EVT:
+      if (param->audio_stat.state == ESP_A2D_AUDIO_STATE_STARTED) {
+        Serial.println("[BT] Audio started");
+      }
+      break;
+    default:
+      break;
   }
 }
 
@@ -131,10 +140,10 @@ void initBluetooth() {
   
   esp_bt_dev_set_device_name("NetRadio");
   esp_bt_gap_register_callback(bt_gap_callback);
-  esp_a2dp_register_callback(bt_a2dp_callback);
-  esp_a2dp_sink_register_data_callback(bt_audio_data_callback);
+  esp_a2d_sink_register_callback(bt_a2d_callback);
+  esp_a2d_sink_register_data_callback(bt_audio_data_callback);
   
-  if (esp_a2dp_sink_init() != ESP_OK) {
+  if (esp_a2d_sink_init() != ESP_OK) {
     Serial.println("[BT] A2DP sink init failed!");
     return;
   }
@@ -148,7 +157,7 @@ void initBluetooth() {
 void stopBluetooth() {
   if (!btEnabled) return;
   
-  esp_a2dp_sink_deinit();
+  esp_a2d_sink_deinit();
   esp_bluedroid_disable();
   esp_bluedroid_deinit();
   esp_bt_controller_disable();
