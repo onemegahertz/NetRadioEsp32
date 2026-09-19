@@ -1,6 +1,7 @@
 /*
  * NetRadio v5.4 - ПОЛНОСТЬЮ РАБОЧАЯ ВЕРСИЯ
  * Исправлены кнопки, добавлена SD карта, кнопка BT сопряжения
+ * Partition Scheme: Huge APP (3MB No OTA)
  */
 
 // WiFi - ВВЕДИТЕ СВОИ ДАННЫЕ!
@@ -23,6 +24,7 @@
 #include "esp_bt_device.h"
 #include "esp_gap_bt_api.h"
 #include "esp_a2dp_api.h"
+#include "esp_avrc_api.h"
 
 // Pins
 #define TFT_BL    21
@@ -74,6 +76,19 @@ unsigned long lastTimeUpdate = 0;
 unsigned long lastWeatherUpdate = 0;
 unsigned long lastTouch = 0;
 
+// Forward declarations
+void playStation(int idx);
+void nextStation();
+void prevStation();
+void volumeUp();
+void volumeDown();
+void updateDisplay();
+void updateTime();
+void updateWeather();
+void initBluetooth();
+void stopBluetooth();
+void checkTouch();
+
 // Bluetooth callbacks
 void bt_gap_callback(esp_bt_gap_cb_event_t event, esp_bt_gap_cb_param_t *param) {
   if (event == ESP_BT_GAP_AUTH_CMPL_EVT) {
@@ -105,7 +120,7 @@ void bt_a2d_callback(esp_a2d_cb_event_t event, esp_a2d_cb_param_t *param) {
 }
 
 void bt_audio_data_callback(const uint8_t *data, uint32_t len) {
-  // Audio data handled by I2S
+  // Audio data handled by I2S automatically
 }
 
 void initBluetooth() {
@@ -119,12 +134,12 @@ void initBluetooth() {
   bt_cfg.bt_max_sync_conn = 0;
   
   if (esp_bt_controller_init(&bt_cfg) != ESP_OK) {
-    Serial.println("[BT] Init failed!");
+    Serial.println("[BT] Controller init failed!");
     return;
   }
   
   if (esp_bt_controller_enable(ESP_BT_MODE_CLASSIC_BT) != ESP_OK) {
-    Serial.println("[BT] Enable failed!");
+    Serial.println("[BT] Controller enable failed!");
     return;
   }
   
@@ -140,11 +155,11 @@ void initBluetooth() {
   
   esp_bt_dev_set_device_name("NetRadio");
   esp_bt_gap_register_callback(bt_gap_callback);
-  esp_a2d_sink_register_callback(bt_a2d_callback);
+  esp_a2d_register_callback(bt_a2d_callback);
   esp_a2d_sink_register_data_callback(bt_audio_data_callback);
   
   if (esp_a2d_sink_init() != ESP_OK) {
-    Serial.println("[BT] A2DP sink init failed!");
+    Serial.println("[BT] A2D sink init failed!");
     return;
   }
   
@@ -251,8 +266,8 @@ void setup() {
     html += "<p>Weather: <b>" + String(weatherTemp) + "</b></p>";
     html += "<p>Bluetooth: <b>" + String(btEnabled ? (btConnected ? "Connected" : "ON") : "OFF") + "</b></p>";
     html += "<p>SD Card: <b>" + String(sdCardDetected ? "OK" : "NOT FOUND") + "</b></p>";
-    html += "<button class='prev' onclick=\"fetch('/prev')\">◀ Prev</button>";
-    html += "<button class='next' onclick=\"fetch('/next')\">Next ▶</button><br>";
+    html += "<button class='prev' onclick=\"fetch('/prev')\">Prev</button>";
+    html += "<button class='next' onclick=\"fetch('/next')\">Next</button><br>";
     html += "<button class='vold' onclick=\"fetch('/voldown')\">Vol-</button>";
     html += "<button class='volu' onclick=\"fetch('/volup')\">Vol+</button><br>";
     html += "<button class='bt' onclick=\"fetch('/bt')\">Toggle Bluetooth</button>";
@@ -300,7 +315,7 @@ void setup() {
   audio.connecttohost(stationURLs[currentStation]);
   Serial.println("[OK] Playing");
   
-  drawScreen();
+  updateDisplay();
   Serial.println("=== Ready ===");
   Serial.printf("Web: http://%s\n", wifiIP);
 }
@@ -322,7 +337,7 @@ void updateWeather() {
     int tempEnd = response.indexOf(",", tempStart);
     if (tempStart > 7 && tempEnd > tempStart) {
       float temp = response.substring(tempStart, tempEnd).toFloat();
-      snprintf(weatherTemp, 10, "%.1f°C", temp);
+      snprintf(weatherTemp, 10, "%.1f C", temp);
       Serial.printf("[WEATHER] %s\n", weatherTemp);
     }
   }
@@ -336,7 +351,7 @@ void updateTime() {
   }
 }
 
-void drawScreen() {
+void updateDisplay() {
   tft.fillScreen(TFT_BLACK);
   
   // Header with time
@@ -407,7 +422,7 @@ void drawScreen() {
     tft.print("BT: OFF");
   }
   
-  // Buttons - BIG and EASY to touch
+  // Buttons
   tft.fillRoundRect(5, 200, 75, 35, 5, TFT_BLUE);
   tft.setTextColor(TFT_WHITE, TFT_BLUE);
   tft.setTextSize(2);
@@ -430,6 +445,58 @@ void drawScreen() {
   tft.print("VOL+");
 }
 
+void checkTouch() {
+  if (!touch.touched()) return;
+  
+  unsigned long now = millis();
+  if (now - lastTouch < 300) {
+    while (touch.touched()) delay(5);
+    return;
+  }
+  lastTouch = now;
+  
+  TS_Point p = touch.getPoint();
+  
+  int screenX = ::map(p.x, 200, 3800, 0, 320);
+  int screenY = ::map(p.y, 200, 3800, 0, 240);
+  
+  screenX = constrain(screenX, 0, 319);
+  screenY = constrain(screenY, 0, 239);
+  
+  Serial.printf("[TOUCH] X=%d Y=%d\n", screenX, screenY);
+  
+  // PREV button (x: 5-80, y: 200-235)
+  if (screenX >= 5 && screenX <= 80 && screenY >= 200 && screenY <= 235) {
+    Serial.println("[BTN] PREV");
+    currentStation = (currentStation - 1 + numStations) % numStations;
+    audio.connecttohost(stationURLs[currentStation]);
+    updateDisplay();
+  }
+  // NEXT button (x: 85-160, y: 200-235)
+  else if (screenX >= 85 && screenX <= 160 && screenY >= 200 && screenY <= 235) {
+    Serial.println("[BTN] NEXT");
+    currentStation = (currentStation + 1) % numStations;
+    audio.connecttohost(stationURLs[currentStation]);
+    updateDisplay();
+  }
+  // VOL- button (x: 165-240, y: 200-235)
+  else if (screenX >= 165 && screenX <= 240 && screenY >= 200 && screenY <= 235) {
+    Serial.println("[BTN] VOL-");
+    volume = max(0, volume - 2);
+    audio.setVolume(volume);
+    updateDisplay();
+  }
+  // VOL+ button (x: 245-320, y: 200-235)
+  else if (screenX >= 245 && screenX <= 320 && screenY >= 200 && screenY <= 235) {
+    Serial.println("[BTN] VOL+");
+    volume = min(21, volume + 2);
+    audio.setVolume(volume);
+    updateDisplay();
+  }
+  
+  while (touch.touched()) delay(5);
+}
+
 void loop() {
   server.handleClient();
   audio.loop();
@@ -439,7 +506,7 @@ void loop() {
   if (now - lastTimeUpdate > 1000) {
     lastTimeUpdate = now;
     updateTime();
-    drawScreen();
+    updateDisplay();
   }
   
   if (now - lastWeatherUpdate > 1800000) {
@@ -447,62 +514,7 @@ void loop() {
     updateWeather();
   }
   
-  // Touch handling
-  if (touch.touched()) {
-    if (now - lastTouch < 300) {
-      while (touch.touched()) delay(5);
-      return;
-    }
-    lastTouch = now;
-    
-    TS_Point p = touch.getPoint();
-    
-    // Калибровка координат
-    int x = p.x;
-    int y = p.y;
-    
-    // Преобразование координат тачскрина в экранные
-    // Эти значения нужно подстроить под ваш дисплей
-    int screenX = ::map(x, 200, 3800, 0, 320);
-    int screenY = ::map(y, 200, 3800, 0, 240);
-    
-    // Ограничение координат
-    screenX = constrain(screenX, 0, 319);
-    screenY = constrain(screenY, 0, 239);
-    
-    Serial.printf("[TOUCH] Raw: X=%d Y=%d -> Screen: X=%d Y=%d\n", x, y, screenX, screenY);
-    
-    // PREV button (x: 5-80, y: 200-235)
-    if (screenX >= 5 && screenX <= 80 && screenY >= 200 && screenY <= 235) {
-      Serial.println("[BTN] PREV");
-      currentStation = (currentStation - 1 + numStations) % numStations;
-      audio.connecttohost(stationURLs[currentStation]);
-      drawScreen();
-    }
-    // NEXT button (x: 85-160, y: 200-235)
-    else if (screenX >= 85 && screenX <= 160 && screenY >= 200 && screenY <= 235) {
-      Serial.println("[BTN] NEXT");
-      currentStation = (currentStation + 1) % numStations;
-      audio.connecttohost(stationURLs[currentStation]);
-      drawScreen();
-    }
-    // VOL- button (x: 165-240, y: 200-235)
-    else if (screenX >= 165 && screenX <= 240 && screenY >= 200 && screenY <= 235) {
-      Serial.println("[BTN] VOL-");
-      volume = max(0, volume - 2);
-      audio.setVolume(volume);
-      drawScreen();
-    }
-    // VOL+ button (x: 245-320, y: 200-235)
-    else if (screenX >= 245 && screenX <= 320 && screenY >= 200 && screenY <= 235) {
-      Serial.println("[BTN] VOL+");
-      volume = min(21, volume + 2);
-      audio.setVolume(volume);
-      drawScreen();
-    }
-    
-    while (touch.touched()) delay(5);
-  }
+  checkTouch();
   
   delay(10);
 }
