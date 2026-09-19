@@ -1,6 +1,5 @@
 /*
  * NetRadio v5.4 - ПОЛНОСТЬЮ РАБОЧАЯ ВЕРСИЯ
- * Исправлены кнопки, добавлена SD карта, кнопка BT сопряжения
  * Partition Scheme: Huge APP (3MB No OTA)
  */
 
@@ -17,8 +16,6 @@
 #include <SD.h>
 #include "Audio.h"
 #include <time.h>
-
-// Bluetooth через ESP-IDF
 #include "esp_bt.h"
 #include "esp_bt_main.h"
 #include "esp_bt_device.h"
@@ -34,8 +31,6 @@
 #define I2S_LRC   26
 #define I2S_DOUT  25
 #define SD_CS     5
-
-// Weather
 #define WEATHER_KEY "cf0cd0d160ba580cef69e35dfe3064c8"
 
 // Globals
@@ -44,7 +39,6 @@ XPT2046_Touchscreen touch(TOUCH_CS, TOUCH_IRQ);
 Audio audio;
 WebServer server(80);
 
-// Stations
 const char* stationNames[] = {"Record", "RusMix", "90s", "Chill", "Rock", "Deep", "Techno", "House", "EDM", "Pirate"};
 const char* stationURLs[] = {
   "https://radiorecord.hostingradio.ru/rr_320",
@@ -58,11 +52,10 @@ const char* stationURLs[] = {
   "https://radiorecord.hostingradio.ru/edm_320",
   "https://radiorecord.hostingradio.ru/ps_320"
 };
+
 int numStations = 10;
 int currentStation = 0;
 int volume = 12;
-
-// State
 bool btEnabled = false;
 bool btConnected = false;
 bool sdCardDetected = false;
@@ -71,85 +64,59 @@ char curDate[11] = "";
 char weatherTemp[10] = "";
 char wifiSSID[20] = "";
 char wifiIP[16] = "";
-
 unsigned long lastTimeUpdate = 0;
 unsigned long lastWeatherUpdate = 0;
 unsigned long lastTouch = 0;
 
 // Forward declarations
-void playStation(int idx);
-void nextStation();
-void prevStation();
-void volumeUp();
-void volumeDown();
-void updateDisplay();
-void updateTime();
 void updateWeather();
+void updateTime();
+void updateDisplay();
 void initBluetooth();
 void stopBluetooth();
 void checkTouch();
 
 // Bluetooth callbacks
 void bt_gap_callback(esp_bt_gap_cb_event_t event, esp_bt_gap_cb_param_t *param) {
-  if (event == ESP_BT_GAP_AUTH_CMPL_EVT) {
-    if (param->auth_cmpl.stat == ESP_BT_STATUS_SUCCESS) {
-      Serial.println("[BT] Auth success");
-    }
+  if (event == ESP_BT_GAP_AUTH_CMPL_EVT && param->auth_cmpl.stat == ESP_BT_STATUS_SUCCESS) {
+    Serial.println("[BT] Auth success");
   }
 }
 
 void bt_a2d_callback(esp_a2d_cb_event_t event, esp_a2d_cb_param_t *param) {
-  switch (event) {
-    case ESP_A2D_CONNECTION_STATE_EVT:
-      if (param->conn_stat.state == ESP_A2D_CONNECTION_STATE_CONNECTED) {
-        btConnected = true;
-        Serial.println("[BT] Connected!");
-      } else if (param->conn_stat.state == ESP_A2D_CONNECTION_STATE_DISCONNECTED) {
-        btConnected = false;
-        Serial.println("[BT] Disconnected");
-      }
-      break;
-    case ESP_A2D_AUDIO_STATE_EVT:
-      if (param->audio_stat.state == ESP_A2D_AUDIO_STATE_STARTED) {
-        Serial.println("[BT] Audio started");
-      }
-      break;
-    default:
-      break;
+  if (event == ESP_A2D_CONNECTION_STATE_EVT) {
+    if (param->conn_stat.state == ESP_A2D_CONNECTION_STATE_CONNECTED) {
+      btConnected = true;
+      Serial.println("[BT] Connected!");
+    } else if (param->conn_stat.state == ESP_A2D_CONNECTION_STATE_DISCONNECTED) {
+      btConnected = false;
+      Serial.println("[BT] Disconnected");
+    }
   }
 }
 
-void bt_audio_data_callback(const uint8_t *data, uint32_t len) {
-  // Audio data handled by I2S automatically
-}
+void bt_audio_data_callback(const uint8_t *data, uint32_t len) {}
 
 void initBluetooth() {
   Serial.println("[BT] Initializing...");
-  
   esp_bt_controller_mem_release(ESP_BT_MODE_BLE);
   
   esp_bt_controller_config_t bt_cfg = BT_CONTROLLER_INIT_CONFIG_DEFAULT();
   bt_cfg.mode = ESP_BT_MODE_CLASSIC_BT;
   bt_cfg.bt_max_acl_conn = 1;
-  bt_cfg.bt_max_sync_conn = 0;
   
   if (esp_bt_controller_init(&bt_cfg) != ESP_OK) {
-    Serial.println("[BT] Controller init failed!");
+    Serial.println("[BT] Init failed!");
     return;
   }
   
   if (esp_bt_controller_enable(ESP_BT_MODE_CLASSIC_BT) != ESP_OK) {
-    Serial.println("[BT] Controller enable failed!");
+    Serial.println("[BT] Enable failed!");
     return;
   }
   
-  if (esp_bluedroid_init() != ESP_OK) {
-    Serial.println("[BT] Bluedroid init failed!");
-    return;
-  }
-  
-  if (esp_bluedroid_enable() != ESP_OK) {
-    Serial.println("[BT] Bluedroid enable failed!");
+  if (esp_bluedroid_init() != ESP_OK || esp_bluedroid_enable() != ESP_OK) {
+    Serial.println("[BT] Bluedroid failed!");
     return;
   }
   
@@ -164,20 +131,17 @@ void initBluetooth() {
   }
   
   esp_bt_gap_set_scan_mode(ESP_BT_CONNECTABLE, ESP_BT_GENERAL_DISCOVERABLE);
-  
   btEnabled = true;
-  Serial.println("[BT] Ready - device name: NetRadio");
+  Serial.println("[BT] Ready - NetRadio");
 }
 
 void stopBluetooth() {
   if (!btEnabled) return;
-  
   esp_a2d_sink_deinit();
   esp_bluedroid_disable();
   esp_bluedroid_deinit();
   esp_bt_controller_disable();
   esp_bt_controller_deinit();
-  
   btEnabled = false;
   btConnected = false;
   Serial.println("[BT] Stopped");
@@ -187,7 +151,6 @@ void setup() {
   Serial.begin(115200);
   Serial.println("\n=== NetRadio v5.4 ===");
   
-  // TFT
   tft.init();
   tft.setRotation(1);
   tft.fillScreen(TFT_BLACK);
@@ -197,42 +160,30 @@ void setup() {
   tft.setTextSize(2);
   tft.setCursor(10, 10);
   tft.println("NetRadio v5.4");
-  tft.setTextSize(1);
-  tft.setCursor(10, 35);
-  tft.println("Starting...");
   Serial.println("[OK] TFT");
   
-  // Touch
   touch.begin(SPI);
   touch.setRotation(1);
   Serial.println("[OK] Touch");
   
-  // SD Card
   SPI.begin(18, 19, 23, SD_CS);
   sdCardDetected = SD.begin(SD_CS);
-  if (sdCardDetected) {
-    Serial.println("[OK] SD Card detected");
-  } else {
-    Serial.println("[FAIL] SD Card not detected");
-  }
+  Serial.println(sdCardDetected ? "[OK] SD Card" : "[FAIL] SD Card");
   
-  // Audio
   audio.setPinout(I2S_BCLK, I2S_LRC, I2S_DOUT);
   audio.setVolume(volume);
   Serial.println("[OK] Audio");
   
-  // Bluetooth
   initBluetooth();
   
-  // WiFi
   tft.setCursor(10, 50);
+  tft.setTextSize(1);
   tft.println("Connecting WiFi...");
   
   WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
   int attempts = 0;
   while (WiFi.status() != WL_CONNECTED && attempts < 30) {
     delay(500);
-    Serial.print(".");
     attempts++;
   }
   
@@ -240,24 +191,20 @@ void setup() {
     strncpy(wifiSSID, WIFI_SSID, 19);
     strcpy(wifiIP, WiFi.localIP().toString().c_str());
     configTime(10800, 0, "pool.ntp.org");
-    Serial.println("\n[OK] WiFi connected!");
-    Serial.printf("SSID: %s\n", wifiSSID);
-    Serial.printf("IP: %s\n", wifiIP);
+    Serial.printf("[OK] WiFi: %s\n", wifiIP);
     updateWeather();
   } else {
-    Serial.println("\n[FAIL] WiFi failed!");
+    Serial.println("[FAIL] WiFi");
     strcpy(wifiSSID, "Not connected");
     strcpy(wifiIP, "0.0.0.0");
   }
   
-  // Web server
   server.on("/", []() {
     String html = "<!DOCTYPE html><html><head><meta charset='UTF-8'><title>NetRadio</title>";
     html += "<meta http-equiv='refresh' content='3'>";
     html += "<style>body{font-family:Arial;background:#1a1a2e;color:#e0e0e0;padding:20px}";
     html += "button{padding:15px 30px;margin:5px;font-size:18px;cursor:pointer;border:none;border-radius:5px;color:white}";
-    html += ".prev{background:#2196F3}.next{background:#4CAF50}.vold{background:#FF9800}.volu{background:#F44336}.bt{background:#9C27B0}</style></head>";
-    html += "<body><h1>NetRadio v5.4</h1>";
+    html += "</style></head><body><h1>NetRadio v5.4</h1>";
     html += "<p>Station: <b>" + String(stationNames[currentStation]) + "</b></p>";
     html += "<p>Volume: <b>" + String(volume) + "/21</b></p>";
     html += "<p>WiFi: <b>" + String(wifiSSID) + "</b></p>";
@@ -265,53 +212,25 @@ void setup() {
     html += "<p>Time: <b>" + String(curTime) + "</b></p>";
     html += "<p>Weather: <b>" + String(weatherTemp) + "</b></p>";
     html += "<p>Bluetooth: <b>" + String(btEnabled ? (btConnected ? "Connected" : "ON") : "OFF") + "</b></p>";
-    html += "<p>SD Card: <b>" + String(sdCardDetected ? "OK" : "NOT FOUND") + "</b></p>";
-    html += "<button class='prev' onclick=\"fetch('/prev')\">Prev</button>";
-    html += "<button class='next' onclick=\"fetch('/next')\">Next</button><br>";
-    html += "<button class='vold' onclick=\"fetch('/voldown')\">Vol-</button>";
-    html += "<button class='volu' onclick=\"fetch('/volup')\">Vol+</button><br>";
-    html += "<button class='bt' onclick=\"fetch('/bt')\">Toggle Bluetooth</button>";
+    html += "<p>SD: <b>" + String(sdCardDetected ? "OK" : "NO") + "</b></p>";
+    html += "<button style='background:#2196F3' onclick=\"fetch('/prev')\">Prev</button>";
+    html += "<button style='background:#4CAF50' onclick=\"fetch('/next')\">Next</button><br>";
+    html += "<button style='background:#FF9800' onclick=\"fetch('/voldown')\">Vol-</button>";
+    html += "<button style='background:#F44336' onclick=\"fetch('/volup')\">Vol+</button><br>";
+    html += "<button style='background:#9C27B0' onclick=\"fetch('/bt')\">Toggle BT</button>";
     html += "</body></html>";
     server.send(200, "text/html", html);
   });
   
-  server.on("/prev", []() { 
-    currentStation = (currentStation - 1 + numStations) % numStations;
-    audio.connecttohost(stationURLs[currentStation]);
-    server.send(200, "text/plain", "OK");
-  });
-  
-  server.on("/next", []() { 
-    currentStation = (currentStation + 1) % numStations;
-    audio.connecttohost(stationURLs[currentStation]);
-    server.send(200, "text/plain", "OK");
-  });
-  
-  server.on("/volup", []() { 
-    volume = min(21, volume + 2);
-    audio.setVolume(volume);
-    server.send(200, "text/plain", "OK");
-  });
-  
-  server.on("/voldown", []() { 
-    volume = max(0, volume - 2);
-    audio.setVolume(volume);
-    server.send(200, "text/plain", "OK");
-  });
-  
-  server.on("/bt", []() {
-    if (btEnabled) {
-      stopBluetooth();
-    } else {
-      initBluetooth();
-    }
-    server.send(200, "text/plain", "OK");
-  });
+  server.on("/prev", []() { currentStation = (currentStation - 1 + numStations) % numStations; audio.connecttohost(stationURLs[currentStation]); server.send(200, "text/plain", "OK"); });
+  server.on("/next", []() { currentStation = (currentStation + 1) % numStations; audio.connecttohost(stationURLs[currentStation]); server.send(200, "text/plain", "OK"); });
+  server.on("/volup", []() { volume = min(21, volume + 2); audio.setVolume(volume); server.send(200, "text/plain", "OK"); });
+  server.on("/voldown", []() { volume = max(0, volume - 2); audio.setVolume(volume); server.send(200, "text/plain", "OK"); });
+  server.on("/bt", []() { if (btEnabled) stopBluetooth(); else initBluetooth(); server.send(200, "text/plain", "OK"); });
   
   server.begin();
-  Serial.println("[OK] Web server started");
+  Serial.println("[OK] Web server");
   
-  // Play first station
   audio.connecttohost(stationURLs[currentStation]);
   Serial.println("[OK] Playing");
   
@@ -326,19 +245,14 @@ void updateWeather() {
     client.printf("GET /data/2.5/weather?q=Moscow,RU&appid=%s&units=metric&lang=ru HTTP/1.1\r\nHost: api.openweathermap.org\r\nConnection: close\r\n\r\n", WEATHER_KEY);
     unsigned long timeout = millis();
     while (!client.available() && millis() - timeout < 5000) delay(1);
-    
     String response = "";
-    while (client.available()) {
-      response += client.readStringUntil('\n');
-    }
+    while (client.available()) response += client.readStringUntil('\n');
     client.stop();
-    
     int tempStart = response.indexOf("\"temp\":") + 7;
     int tempEnd = response.indexOf(",", tempStart);
     if (tempStart > 7 && tempEnd > tempStart) {
       float temp = response.substring(tempStart, tempEnd).toFloat();
       snprintf(weatherTemp, 10, "%.1f C", temp);
-      Serial.printf("[WEATHER] %s\n", weatherTemp);
     }
   }
 }
@@ -354,19 +268,16 @@ void updateTime() {
 void updateDisplay() {
   tft.fillScreen(TFT_BLACK);
   
-  // Header with time
   tft.fillRect(0, 0, 320, 30, TFT_DARKGREY);
   tft.setTextColor(TFT_CYAN, TFT_DARKGREY);
   tft.setTextSize(2);
   tft.setCursor(10, 5);
   tft.print("NetRadio v5.4");
-  
   tft.setTextColor(TFT_WHITE, TFT_DARKGREY);
   tft.setTextSize(1);
   tft.setCursor(240, 10);
   tft.print(curTime);
   
-  // LEFT SIDE - Station info
   tft.setTextColor(TFT_WHITE);
   tft.setTextSize(3);
   tft.setCursor(10, 45);
@@ -377,43 +288,38 @@ void updateDisplay() {
   tft.setCursor(10, 80);
   tft.printf("Station %d/%d", currentStation + 1, numStations);
   
-  // Volume
   tft.setTextColor(TFT_WHITE);
   tft.setTextSize(2);
   tft.setCursor(10, 105);
   tft.printf("Vol: %d/21", volume);
   
-  // Volume bar
   tft.fillRect(10, 130, 200, 15, TFT_DARKGREY);
   tft.fillRect(10, 130, ::map(volume, 0, 21, 0, 200), 15, TFT_GREEN);
   tft.drawRect(10, 130, 200, 15, TFT_WHITE);
   
-  // RIGHT SIDE - Status info
   tft.setTextSize(1);
   tft.setTextColor(TFT_GREEN);
   tft.setCursor(220, 45);
-  tft.printf("WiFi:");
+  tft.print("WiFi:");
   tft.setCursor(220, 60);
-  tft.printf("%s", wifiSSID);
+  tft.print(wifiSSID);
   
   tft.setTextColor(TFT_CYAN);
   tft.setCursor(220, 80);
-  tft.printf("IP:");
+  tft.print("IP:");
   tft.setCursor(220, 95);
-  tft.printf("%s", wifiIP);
+  tft.print(wifiIP);
   
   tft.setTextColor(TFT_YELLOW);
   tft.setCursor(220, 115);
-  tft.printf("Moscow:");
+  tft.print("Moscow:");
   tft.setCursor(220, 130);
-  tft.printf("%s", weatherTemp);
+  tft.print(weatherTemp);
   
-  // SD Card status
   tft.setTextColor(sdCardDetected ? TFT_GREEN : TFT_RED);
   tft.setCursor(220, 150);
   tft.printf("SD: %s", sdCardDetected ? "OK" : "NO");
   
-  // Bluetooth status
   tft.setTextColor(btEnabled ? TFT_GREEN : TFT_RED);
   tft.setCursor(220, 165);
   if (btEnabled) {
@@ -422,7 +328,6 @@ void updateDisplay() {
     tft.print("BT: OFF");
   }
   
-  // Buttons
   tft.fillRoundRect(5, 200, 75, 35, 5, TFT_BLUE);
   tft.setTextColor(TFT_WHITE, TFT_BLUE);
   tft.setTextSize(2);
@@ -456,38 +361,29 @@ void checkTouch() {
   lastTouch = now;
   
   TS_Point p = touch.getPoint();
-  
   int screenX = ::map(p.x, 200, 3800, 0, 320);
   int screenY = ::map(p.y, 200, 3800, 0, 240);
-  
   screenX = constrain(screenX, 0, 319);
   screenY = constrain(screenY, 0, 239);
   
   Serial.printf("[TOUCH] X=%d Y=%d\n", screenX, screenY);
   
-  // PREV button (x: 5-80, y: 200-235)
   if (screenX >= 5 && screenX <= 80 && screenY >= 200 && screenY <= 235) {
     Serial.println("[BTN] PREV");
     currentStation = (currentStation - 1 + numStations) % numStations;
     audio.connecttohost(stationURLs[currentStation]);
     updateDisplay();
-  }
-  // NEXT button (x: 85-160, y: 200-235)
-  else if (screenX >= 85 && screenX <= 160 && screenY >= 200 && screenY <= 235) {
+  } else if (screenX >= 85 && screenX <= 160 && screenY >= 200 && screenY <= 235) {
     Serial.println("[BTN] NEXT");
     currentStation = (currentStation + 1) % numStations;
     audio.connecttohost(stationURLs[currentStation]);
     updateDisplay();
-  }
-  // VOL- button (x: 165-240, y: 200-235)
-  else if (screenX >= 165 && screenX <= 240 && screenY >= 200 && screenY <= 235) {
+  } else if (screenX >= 165 && screenX <= 240 && screenY >= 200 && screenY <= 235) {
     Serial.println("[BTN] VOL-");
     volume = max(0, volume - 2);
     audio.setVolume(volume);
     updateDisplay();
-  }
-  // VOL+ button (x: 245-320, y: 200-235)
-  else if (screenX >= 245 && screenX <= 320 && screenY >= 200 && screenY <= 235) {
+  } else if (screenX >= 245 && screenX <= 320 && screenY >= 200 && screenY <= 235) {
     Serial.println("[BTN] VOL+");
     volume = min(21, volume + 2);
     audio.setVolume(volume);
@@ -502,19 +398,16 @@ void loop() {
   audio.loop();
   
   unsigned long now = millis();
-  
   if (now - lastTimeUpdate > 1000) {
     lastTimeUpdate = now;
     updateTime();
     updateDisplay();
   }
-  
   if (now - lastWeatherUpdate > 1800000) {
     lastWeatherUpdate = now;
     updateWeather();
   }
   
   checkTouch();
-  
   delay(10);
 }
